@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+		<title>Puzz</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+	<canvas id="canv" style="border: 2px solid #000000"></canvas>
+
+	<script src="strength.js"></script>
+
+	<script src="levelDesigner.js"></script>
+
+		<br># of Columns:<br>
+		<input id="columns" type="number"/>
+		<br># of rows:<br>
+		<input id="rows" type="number"/>
+		<br>
+		<input id="submitCanvas" type="submit" onclick="userSetUpCanvas()"/>
+		<br>
+
+		<br>Place boulder at column#,row# (e.g. 5,3)<br> 
+		<input id="placeBoulderHere" type="text"/>
+		<button id="submitBoulders" onclick="setUpBouldersHere()">Place</button>
+		<button id="undoBoulder" onclick="undoLastBoulder()">Undo Last Placement</button><br>
+
+		<br>Remove boulder at column#, row#<br>
+		<input id="removeBoulderHere" type="text"/>
+		<button id="removeBoulder" onclick="removeBoulderAt()">Remove</button><br>
+
+		<br>Set starting position at column# row#<br>
+		<input id="placeCharHere" type="text"/>
+		<button id="submitChar" onclick="setUpCharHere()">Set</button>
+		
+	
+	
+	
+</body>
+
+</html>
