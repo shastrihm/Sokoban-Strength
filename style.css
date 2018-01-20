@@ -1,4 +1,7 @@
 canvas{
   background-image: url("caveBackground.png");
+}
+
+body{
   background-color: rgb(211,211,211);
 }
