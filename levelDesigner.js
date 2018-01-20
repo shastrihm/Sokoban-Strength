@@ -16,28 +16,31 @@ function userSetUpCanvas()
 
 
 
-function setUpBouldersHere()
+function setUpWhatHere(what,id)
 {
-  let coords=String(document.getElementById("placeBoulderHere").value);
+  let coords=String(document.getElementById(id).value);
   let col = Number(coords.split(",")[0]), row=Number(coords.split(",")[1]);
-  
-  function findBoulderAt(boulder){
-    return (boulder.x == boulder.width*(col-1)) && (boulder.y == boulder.height*(row-1))
-  } 
 
-  let doesExist = boulderArray.find(findBoulderAt);
-  let testObj = {
-                  width: size,
-                 height: size,
-                      x: size*(col-1),
-                      y: size*(row-1)
-                 };
-  if(doesExist===undefined && !collision(char, testObj)){
-    new Boulder(col,row);
-    redraw();
+  if(col<=canvas.width/size && row<=canvas.height/size)
+  {
+    function findBoulderAt(boulder){
+      return (boulder.x == boulder.width*(col-1)) && (boulder.y == boulder.height*(row-1))
+    } 
+
+    let doesExist = boulderArray.find(findBoulderAt);
+    let testObj = {
+                    width: size,
+                   height: size,
+                        x: size*(col-1),
+                        y: size*(row-1)
+                   };
+    if(doesExist===undefined && !collision(char, testObj)){
+      new what(col,row);
+      redraw();
+    }
   }
 
-  clearInput("placeBoulderHere");
+  clearInput(id);
 }
 
 
@@ -69,6 +72,7 @@ function removeBoulderAt()
 
   clearInput("removeBoulderHere");
 }
+
 
 
 
