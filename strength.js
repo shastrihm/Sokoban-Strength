@@ -4,14 +4,16 @@ var keys = [];
 var pushUp,pushDown,pushLeft,pushRight;
 var boulderArray = [];
 var grid=false;
-var size=50;
+var size=60;
 var c=67; 
 
 var pikaImg = new Image();
 pikaImg.src = "https://cdn.pixabay.com/photo/2016/08/06/08/05/pokemon-1574006_1280.png";
 
+var wallImg = new Image();
+wallImg.src = "Wall.png";
 var boulderImg = new Image();
-boulderImg.src = "https://cdn.pixabay.com/photo/2012/04/16/11/07/rock-35522_1280.png";
+boulderImg.src = "Boulder.png";
 
 
 function Character(column,row)
@@ -30,18 +32,25 @@ function Character(column,row)
 
 }
 
-function Boulder(column,row)
+function Wall(column,row)
 { 
   this.width = size;
   this.height = size;
   this.x = this.width*(column-1);
   this.y = this.height*(row-1);
-  this.img = boulderImg;
+  this.img = wallImg;
   boulderArray.push(this);
 
   this.draw = function(){
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
   }
+}
+
+function Boulder(column, row)
+{
+  Wall.call(this, column, row);
+  this.img=boulderImg;
+  //boulderArray.push(this);
 
   this.animateBoulderPush = function(){ //checks for collisions between boulders
  
@@ -107,7 +116,9 @@ function Boulder(column,row)
 
 }
 
-char = new Character(-100,-100);
+Boulder.prototype = Object.create(Wall.prototype);
+
+char = new Character();
 
 function loadInitial() {
   window.onload = function(){
@@ -129,7 +140,10 @@ function move() {//doesn't check for collisions between boulders
       }
       else{
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder))
-        thisBoulder.animateBoulderPush();
+        if(thisBoulder instanceof Boulder)
+        {
+          thisBoulder.animateBoulderPush();
+        }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.x -= char.speed;
         redraw();
@@ -147,7 +161,10 @@ function move() {//doesn't check for collisions between boulders
       }
       else{
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder))
-        thisBoulder.animateBoulderPush();
+        if(thisBoulder instanceof Boulder)
+        {
+          thisBoulder.animateBoulderPush();
+        }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.y -= char.speed;
         redraw();
@@ -165,7 +182,10 @@ function move() {//doesn't check for collisions between boulders
       }
       else{
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder))
-        thisBoulder.animateBoulderPush();
+        if(thisBoulder instanceof Boulder)
+        {
+          thisBoulder.animateBoulderPush();
+        }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.y += char.speed;
         redraw();
@@ -182,7 +202,10 @@ function move() {//doesn't check for collisions between boulders
       }
       else{
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder))
-        thisBoulder.animateBoulderPush();
+        if(thisBoulder instanceof Boulder)
+        {
+          thisBoulder.animateBoulderPush();
+        }
         ctx.clearRect(char.x, char.y, char.width, char.height); 
         char.x+=char.speed; 
         redraw();
