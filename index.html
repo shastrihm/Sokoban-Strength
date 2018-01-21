@@ -7,8 +7,7 @@
 </head>
 
 <body>
-
-	<canvas id="canv" style="border: 2px solid #000000"></canvas>
+	<canvas id="canv" width="360" height="360" style="border: 2px solid #000000"></canvas>
 
 	<script src="strength.js"></script>
 
@@ -22,24 +21,27 @@
 		<input id="submitCanvas" type="submit" onclick="userSetUpCanvas()"/>
 		<br>
 
-		<br>Place Boulder at column#,row# (e.g. 5,3)<br> 
-		<input id="placeBoulderHere" type="text"/>
-		<button id="submitBoulders" onclick="setUpWhatHere(Boulder,'placeBoulderHere')">Place</button>
-		<button id="undoBoulder" onclick="undoLastBoulder()">Undo Last Placement</button><br>
+		<br>
+		<button id="submitBoulders" onclick="
+		what=Boulder;
+		drawWhatOnClick(canvas);">Mode:Place Boulders</button><br>
 
-		<br>Remove at column#, row#<br>
-		<input id="removeBoulderHere" type="text"/>
-		<button id="removeBoulder" onclick="removeBoulderAt()">Remove</button><br>
+		<button id="submitWall" onclick="
+		what=Wall;
+		drawWhatOnClick(canvas);">Mode: Place Walls</button><br>
 
-		<br>Place Wall at column#,row#<br>
-		<input id="placeWallHere" type="text"/>
-		<button id="submitWall" onclick="setUpWhatHere(Wall,'placeWallHere')">Place</button><br>
+		<button id="undoBoulder" onclick="undoLastBoulder()">Undo Last Placement</button><br>	
+
+		<button id="removeBoulder" onclick="
+		what='remove'; 
+		drawWhatOnClick(canvas);">Mode: Erase</button><br>
+
+		
 
 		<br>Set starting position at column# row#<br>
 		<input id="placeCharHere" type="text"/>
 		<button id="submitChar" onclick="setUpCharHere()">Set</button>
 		
-	
 	
 	
 </body>
