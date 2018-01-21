@@ -7,8 +7,14 @@ var grid=false;
 var size=60;
 var c=67; 
 
-var pikaImg = new Image();
-pikaImg.src = "https://cdn.pixabay.com/photo/2016/08/06/08/05/pokemon-1574006_1280.png";
+var faceDown = new Image();
+faceDown.src = "faceDown.png";
+var faceUp= new Image();
+faceUp.src= "faceUp.png";
+var faceRight= new Image();
+faceRight.src= "faceRight.png";
+var faceLeft = new Image();
+faceLeft.src="faceLeft.png";
 
 var wallImg = new Image();
 wallImg.src = "Wall.png";
@@ -23,7 +29,7 @@ function Character(column,row)
   this.height = size;
   this.x = this.width*(column-1);
   this.y = this.height*(row-1);
-  this.img = pikaImg;
+  this.img = faceDown;
   this.speed = 2.5;
 
   this.draw = function(){
@@ -50,7 +56,6 @@ function Boulder(column, row)
 {
   Wall.call(this, column, row);
   this.img=boulderImg;
-  //boulderArray.push(this);
 
   this.animateBoulderPush = function(){ //checks for collisions between boulders
  
@@ -136,6 +141,7 @@ function move() {//doesn't check for collisions between boulders
       char.x += char.speed;
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
+        char.img = faceRight;
         redraw();
       }
       else{
@@ -146,6 +152,7 @@ function move() {//doesn't check for collisions between boulders
         }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.x -= char.speed;
+        char.img = faceRight;
         redraw();
       }
     }
@@ -157,6 +164,7 @@ function move() {//doesn't check for collisions between boulders
       char.y += char.speed;
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
+        char.img = faceDown;
         redraw();
       }
       else{
@@ -167,6 +175,7 @@ function move() {//doesn't check for collisions between boulders
         }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.y -= char.speed;
+        char.img = faceDown;
         redraw();
       }
     }
@@ -178,6 +187,7 @@ function move() {//doesn't check for collisions between boulders
       char.y -= char.speed;
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
+        char.img = faceUp;
         redraw();
       }
       else{
@@ -188,6 +198,7 @@ function move() {//doesn't check for collisions between boulders
         }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.y += char.speed;
+        char.img = faceUp;
         redraw();
       } 
     }
@@ -198,6 +209,7 @@ function move() {//doesn't check for collisions between boulders
       ctx.clearRect(char.x, char.y, char.width, char.height);
       char.x -= char.speed;
       if(!boulderArray.some(boulder=>collision(char, boulder))){
+        char.img = faceLeft;
         redraw();
       }
       else{
@@ -208,6 +220,7 @@ function move() {//doesn't check for collisions between boulders
         }
         ctx.clearRect(char.x, char.y, char.width, char.height); 
         char.x+=char.speed; 
+        char.img = faceLeft;
         redraw();
       }
     }
@@ -216,14 +229,18 @@ function move() {//doesn't check for collisions between boulders
 }
 
 function redraw()
-{
-  char.draw();
-  boulderArray.forEach(boulder=>boulder.draw());
-  if(grid){showGrid();}
+{ 
+  if(grid){
+    showGrid();
+    char.draw();
+    boulderArray.forEach(boulder=>boulder.draw());
+  }
+  
   else{
     ctx.clearRect(0,0,canvas.width,canvas.height);
     char.draw();
-    boulderArray.forEach(boulder=>boulder.draw());}
+    boulderArray.forEach(boulder=>boulder.draw());
+  }
 }
 
 
