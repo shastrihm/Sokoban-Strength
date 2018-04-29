@@ -20,15 +20,12 @@ function undoLastBoulder()
 {
   boulderArray.pop();
   redraw();
-}
+}   
 
 
 
-function setUpCharHere()
+function setUpCharHere(col,row)
 {
-  let coords=String(document.getElementById("placeCharHere").value);
-  let col = Number(coords.split(",")[0]), row=Number(coords.split(",")[1]);
-
   function findBoulderAt(boulder){
     return (boulder.x == boulder.width*(col-1)) && (boulder.y == boulder.height*(row-1))
   }
@@ -39,11 +36,49 @@ function setUpCharHere()
     redraw();
   }
 
-  clearInput("placeCharHere");
 }
 
 
 var what;
+function drawBoulders(col,row)
+{
+  function findBoulderAt(boulder){
+    return (boulder.x == boulder.width*(col-1)) && (boulder.y == boulder.height*(row-1))
+  } 
+
+  if(what==Boulder || what==Wall)
+  {
+    let doesExist = boulderArray.find(findBoulderAt);
+    let testObj = {
+                    width: size,
+                   height: size,
+                        x: size*(col-1),
+                        y: size*(row-1)
+                   };
+    if(doesExist===undefined && !collision(char, testObj)){
+      new what(col,row);
+      redraw();
+    }
+  }
+
+  else if (what==Character)
+  {
+    setUpCharHere(col,row)
+  }
+
+  else if(what=="remove")
+  {
+    function remove(array, element){
+      return array.filter(e=>e!==element);
+    }
+    let thisOne = boulderArray.find(findBoulderAt);
+    boulderArray = remove(boulderArray,thisOne);
+    redraw();
+  }
+}
+
+
+
 function drawWhatOnClick(e)
 {
   
@@ -59,41 +94,15 @@ function drawWhatOnClick(e)
   }
 
 
-  function onCanvasClick(e) 
+  function onCanvasClickDrawItem(e) 
   {
-      //alert(getCursorPosition(e));
-      testCoords = getCursorPosition(e);
-      var col=testCoords[0], row=testCoords[1];
+    //alert(getCursorPosition(e));
+    testCoords = getCursorPosition(e);
+    var col=testCoords[0], row=testCoords[1];
 
-      function findBoulderAt(boulder){
-        return (boulder.x == boulder.width*(col-1)) && (boulder.y == boulder.height*(row-1))
-      } 
-
-      if(what==Boulder || what==Wall)
-      {
-        let doesExist = boulderArray.find(findBoulderAt);
-        let testObj = {
-                        width: size,
-                       height: size,
-                            x: size*(col-1),
-                            y: size*(row-1)
-                       };
-        if(doesExist===undefined && !collision(char, testObj)){
-          new what(col,row);
-          redraw();
-        }
-      }
+    drawBoulders(col,row);
     
-      else if(what=="remove")
-      {
-        function remove(array, element){
-          return array.filter(e=>e!==element);
-        }
-        let thisOne = boulderArray.find(findBoulderAt);
-        boulderArray = remove(boulderArray,thisOne);
-        redraw();
-      }
-  //code goes here
+    //code goes here
   } 
    
   function getCursorPosition(e) 
@@ -101,8 +110,8 @@ function drawWhatOnClick(e)
       let x;
       let y;
       if (e.pageX != undefined && e.pageY != undefined) {
-      x = e.pageX;
-      y = e.pageY;
+        x = e.pageX;
+        y = e.pageY;
       }
       else {
       x = e.clientX + document.body.scrollLeft +
@@ -132,7 +141,8 @@ function drawWhatOnClick(e)
 
       return [col,row]
   }
-  canvas.addEventListener("click", onCanvasClick, false); 
+
+  canvas.addEventListener("click", onCanvasClickDrawItem, false); 
   canvas.addEventListener("mousemove", highlightSquare, false);
 }
 
