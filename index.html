@@ -39,7 +39,16 @@
 		<button id="removeBoulder" onclick="
 		what='remove'; 
 		drawWhatOnClick(canvas);">Mode: Erase</button><br>
-		
+
+		<br>
+		<textarea id="I/O_config" rows="4" cols="50">
+Click export and then save the puzzle to your clipboard!
+Paste the text and then click import to play the puzzle!
+		</textarea>
+		<br>
+		<button id="export" onclick="getConfig()">Export Configuration</button>
+		<button id="import" onclick="validateConfig()">Import Configuration</button>
+		<br>
 		
 		
 	
@@ -47,3 +56,4 @@
 </body>
 
 </html>
+
