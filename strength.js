@@ -1,6 +1,7 @@
 var canvas = document.getElementById("canv");
 var ctx = canvas.getContext("2d");
 var keys = [];
+var masterObstacles = [];
 var pushUp,pushDown,pushLeft,pushRight;
 var boulderArray = [];
 var grid=false;
@@ -26,6 +27,7 @@ flagImg.src = "flag.png";
 
 function Character(column,row)
 { 
+  this.parent = "Character";
   this.width = size;
   this.height = size;
   this.col = column;
@@ -49,6 +51,7 @@ function Character(column,row)
 
 function Wall(column,row)
 { 
+  this.parent = "Wall";
   this.width = size;
   this.height = size;
   this.col = column;
@@ -72,6 +75,7 @@ function Wall(column,row)
 function Boulder(column, row)
 {
   Wall.call(this, column, row);
+  this.parent = "Boulder";
   this.img=boulderImg;
 
   this.animateBoulderPush = function(){ //checks for collisions between boulders
@@ -140,6 +144,7 @@ function Boulder(column, row)
 }
 
 Boulder.prototype = Object.create(Wall.prototype);
+masterObstacles = [Wall, Boulder];
 
 char = new Character();
 
