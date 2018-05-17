@@ -52,6 +52,8 @@ function drawBoulders(col,row)
     let testObj = {
                     width: size,
                    height: size,
+                        col: col,
+                        row: row,
                         x: size*(col-1),
                         y: size*(row-1)
                    };
@@ -147,3 +149,58 @@ function drawWhatOnClick(e)
 }
 
 
+function exportConfig()
+{
+  let exportThis = [];
+  for (let boulder in boulderArray)
+  {
+    boul = boulderArray[boulder];
+    exportThis.push(boul.parent, boul.col,boul.row,"|");
+  }
+  return String(exportThis);
+}
+
+
+function importConfig(config)
+{
+  //config is a string 
+  boulderArray = [];
+  itemArray = config.split("|").filter(item => item!="");
+  for(let i in itemArray)
+  {
+    filt1 = itemArray[i].split(",").filter(item => item!="");
+    let crtInstance = filt1[0];
+    let col = Number(filt1[1]);
+    let row = Number(filt1[2]);
+
+    for(let obs in masterObstacles)
+    { 
+      obstacle = masterObstacles[obs]; 
+      if(obstacle.name == crtInstance)
+      {
+        new obstacle(col,row);
+      }
+    }
+  }
+  redraw();
+}
+
+
+function validateConfig()
+{
+  config = document.getElementById("I/O_config").value;
+  try 
+  {
+    importConfig(config)
+  }
+  catch(error)
+  {
+    document.getElementById("I/O_config").value = "Please make sure you imported in the right format!";
+  }
+}
+
+
+function getConfig()
+{
+  document.getElementById("I/O_config").value = exportConfig();
+}
