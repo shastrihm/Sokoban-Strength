@@ -152,6 +152,9 @@ function drawWhatOnClick(e)
 function exportConfig()
 {
   let exportThis = [];
+  let numcols = canvas.width/size;
+  let numrows = canvas.height/size;
+  exportThis.push(String(numcols) + "x" + String(numrows) + "|");
   for (let boulder in boulderArray)
   {
     boul = boulderArray[boulder];
@@ -166,21 +169,35 @@ function importConfig(config)
   //config is a string 
   boulderArray = [];
   itemArray = config.split("|").filter(item => item!="");
+
   for(let i in itemArray)
   {
-    filt1 = itemArray[i].split(",").filter(item => item!="");
-    let crtInstance = filt1[0];
-    let col = Number(filt1[1]);
-    let row = Number(filt1[2]);
+    if(i==0)
+    {
+      let dims = itemArray[i].split("x");
+      let cols = Number(dims[0]);
+      let rows = Number(dims[1]);
+      canvas.width = cols*size;
+      canvas.height = rows*size;
+    }
 
-    for(let obs in masterObstacles)
-    { 
-      obstacle = masterObstacles[obs]; 
-      if(obstacle.name == crtInstance)
-      {
-        new obstacle(col,row);
+    else
+    {
+      filt1 = itemArray[i].split(",").filter(item => item!="");
+      let crtInstance = filt1[0];
+      let col = Number(filt1[1]);
+      let row = Number(filt1[2]);
+
+      for(let obs in masterObstacles)
+      { 
+        obstacle = masterObstacles[obs]; 
+        if(obstacle.name == crtInstance)
+        {
+          new obstacle(col,row);
+        }
       }
     }
+    
   }
   redraw();
 }
