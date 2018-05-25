@@ -35,9 +35,20 @@ function setUpCharHere(col,row)
     char = new Character(col,row);
     redraw();
   }
-
 }
 
+function setDestination(col,row)
+{
+  function findBoulderAt(boulder){
+    return (boulder.x == boulder.width*(col-1)) && (boulder.y == boulder.height*(row-1))
+  }
+
+  let doesExist = boulderArray.find(findBoulderAt);
+  if(doesExist===undefined){
+    endgoal = new Destination(col,row);
+    redraw();
+  }
+}
 
 var what;
 function drawBoulders(col,row)
@@ -65,17 +76,30 @@ function drawBoulders(col,row)
 
   else if (what==Character)
   {
-    setUpCharHere(col,row)
+    setUpCharHere(col,row);
   }
 
   else if(what=="remove")
-  {
+  { 
+    if(endgoal.col == col && endgoal.row == row){
+      endgoal = new Destination();
+      return;
+    }
+    else if(char.col == col && char.row == row){
+      char = new Character();
+      return;
+    }
     function remove(array, element){
       return array.filter(e=>e!==element);
     }
     let thisOne = boulderArray.find(findBoulderAt);
     boulderArray = remove(boulderArray,thisOne);
     redraw();
+  }
+
+  else if(what==Destination)
+  {
+    setDestination(col,row);
   }
 }
 
@@ -160,6 +184,8 @@ function exportConfig()
     boul = boulderArray[boulder];
     exportThis.push(boul.parent, boul.col,boul.row,"|");
   }
+  exportThis.push(char.parent,char.col,char.row,"|");
+  exportThis.push(endgoal.parent,endgoal.col,endgoal.row,"|");
   return String(exportThis);
 }
 
@@ -168,7 +194,7 @@ function importConfig(config)
 {
   //config is a string 
   boulderArray = [];
-  itemArray = config.split("|").filter(item => item!="");
+  let itemArray = config.split("|").filter(item => item!="");
 
   for(let i in itemArray)
   {
@@ -187,13 +213,24 @@ function importConfig(config)
       let crtInstance = filt1[0];
       let col = Number(filt1[1]);
       let row = Number(filt1[2]);
-
+     
       for(let obs in masterObstacles)
       { 
-        obstacle = masterObstacles[obs]; 
+        let obstacle = masterObstacles[obs]; 
         if(obstacle.name == crtInstance)
         {
-          new obstacle(col,row);
+          if(obstacle.name == "Destination")
+          {
+            endgoal = new obstacle(col,row);
+          }
+          if(obstacle.name == "Character")
+          {
+            char = new obstacle(col,row);
+          }
+          else
+          {
+            new obstacle(col,row);
+          }          
         }
       }
     }
