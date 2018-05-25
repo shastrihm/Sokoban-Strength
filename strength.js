@@ -49,6 +49,28 @@ function Character(column,row)
 
 }
 
+function Destination(column,row)
+{ 
+  this.parent = "Destination";
+  this.width = size;
+  this.height = size;
+  this.col = column;
+  this.row = row; 
+  this.x = this.width*(this.col-1);
+  this.y = this.height*(this.row-1);
+  this.img = flagImg;
+  
+  this.updatePos = function(){
+    this.x = this.width*(this.col-1);
+    this.y = this.height*(this.row-1);
+  }
+
+  this.draw = function(){
+    this.updatePos();
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+}
+
 function Wall(column,row)
 { 
   this.parent = "Wall";
@@ -144,13 +166,15 @@ function Boulder(column, row)
 }
 
 Boulder.prototype = Object.create(Wall.prototype);
-masterObstacles = [Wall, Boulder];
+masterObstacles = [Wall, Boulder, Destination, Character];
 
 char = new Character();
+endgoal = new Destination();
 
 function loadInitial() {
   window.onload = function(){
     char.draw();
+    endgoal.draw();
     boulderArray.forEach(boulder=>boulder.draw());
   }
 }
@@ -262,12 +286,14 @@ function redraw()
   if(grid){
     showGrid();
     char.draw();
+    endgoal.draw();
     boulderArray.forEach(boulder=>boulder.draw());
   }
   
   else{
     ctx.clearRect(0,0,canvas.width,canvas.height);
     char.draw();
+    endgoal.draw();
     boulderArray.forEach(boulder=>boulder.draw());
   }
 }
