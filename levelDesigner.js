@@ -168,12 +168,12 @@ function drawWhatOnClick(e)
       return [col,row]
   }
 
-  canvas.addEventListener("click", onCanvasClickDrawItem, false); 
+  canvas.addEventListener("click", pausable(onCanvasClickDrawItem), false); 
   canvas.addEventListener("mousemove", highlightSquare, false);
 }
 
 
-function exportConfig()
+function exportConfig(canvas,boulderArray,char,endgoal)
 {
   let exportThis = [];
   let numcols = canvas.width/size;
@@ -194,7 +194,7 @@ function importConfig(config)
 {
   //config is a string 
   boulderArray = [];
-  let itemArray = config.split("|").filter(item => item!="");
+  let itemArray = config.trim().split("|").filter(item => item!="");
 
   for(let i in itemArray)
   {
@@ -213,26 +213,8 @@ function importConfig(config)
       let crtInstance = filt1[0];
       let col = Number(filt1[1]);
       let row = Number(filt1[2]);
-     
-      for(let obs in masterObstacles)
-      { 
-        let obstacle = masterObstacles[obs]; 
-        if(obstacle.name == crtInstance)
-        {
-          if(obstacle.name == "Destination")
-          {
-            endgoal = new obstacle(col,row);
-          }
-          if(obstacle.name == "Character")
-          {
-            char = new obstacle(col,row);
-          }
-          else
-          {
-            new obstacle(col,row);
-          }          
-        }
-      }
+
+      (masterObstacles[crtInstance])[0](col,row);   
     }
     
   }
@@ -245,10 +227,11 @@ function validateConfig()
   config = document.getElementById("I/O_config").value;
   try 
   {
-    importConfig(config)
+    importConfig(config);
   }
   catch(error)
   {
+    //console.log(error);
     document.getElementById("I/O_config").value = "Please make sure you imported in the right format!";
   }
 }
@@ -256,5 +239,5 @@ function validateConfig()
 
 function getConfig()
 {
-  document.getElementById("I/O_config").value = exportConfig();
+  document.getElementById("I/O_config").value = exportConfig(canvas,boulderArray,char,endgoal);
 }
