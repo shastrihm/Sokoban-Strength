@@ -1,12 +1,13 @@
 var canvas = document.getElementById("canv");
 var ctx = canvas.getContext("2d");
 var keys = [];
-var masterObstacles = [];
 var pushUp,pushDown,pushLeft,pushRight;
 var boulderArray = [];
 var grid=false;
-var size=60;
+const size=60;
 var storePos;
+var pauseInput = false;
+
 
 var faceDown = new Image();
 faceDown.src = "faceDown.png";
@@ -100,7 +101,7 @@ function Boulder(column, row)
   this.parent = "Boulder";
   this.img=boulderImg;
 
-  this.animateBoulderPush = function(){ //checks for collisions between boulders
+  this.animateBoulderPush = function(boulderArray){ //checks for collisions between boulders
  
     function remove(array, element){
       return array.filter(e=>e!==element);
@@ -111,7 +112,6 @@ function Boulder(column, row)
     if(pushUp && this.row>1)
     {
       this.row--;
-      console.log('hi');
       if(this.y>=0 && !remove(boulderArray,this).some((boulder)=>collision(this,boulder))){
         this.draw();}
       else{this.row++;}
@@ -140,6 +140,12 @@ function Boulder(column, row)
         this.draw();}
       else{this.col--;}
     }
+
+    if(pauseInput)
+    {
+      return;
+    }
+
     //top 
     if(!pushUp && !pushLeft && !pushRight)
     {
@@ -166,10 +172,43 @@ function Boulder(column, row)
 }
 
 Boulder.prototype = Object.create(Wall.prototype);
-masterObstacles = [Wall, Boulder, Destination, Character];
+
 
 char = new Character();
 endgoal = new Destination();
+
+//index 0 of key is for initializing the actual obj, 
+//index 1 is for the AI to simulate the game away from UI
+const masterObstacles = {"Wall": [
+                                  function(col,row){new Wall(col,row)},
+                                  function(col,row){testBoulderArray.push(testWallMaker(col,row));}
+                                 ],
+                        "Boulder": [
+                                    function(col,row){new Boulder(col,row)},
+                                    function(col,row){testBoulderArray.push(testBoulderMaker(col,row));}
+                                   ],
+                        "Destination": [
+                                        function(col,row){endgoal = new Destination(col,row)},
+                                        function(col,row){testdest.col = col;
+                                                          testdest.row = row;}
+                                       ],
+                        "Character": [
+                                      function(col,row){char = new Character(col,row)},
+                                      function(col,row){testchar.col = col;
+                                                 testchar.row = row;}
+                                     ]
+                        }
+                        
+
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
 
 function loadInitial() {
   window.onload = function(){
@@ -197,7 +236,7 @@ function move() {//doesn't check for collisions between boulders
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
         if(thisBoulder instanceof Boulder)
         {
-          thisBoulder.animateBoulderPush();
+          thisBoulder.animateBoulderPush(boulderArray);
         }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.col--;
@@ -221,7 +260,7 @@ function move() {//doesn't check for collisions between boulders
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
         if(thisBoulder instanceof Boulder)
         {
-          thisBoulder.animateBoulderPush();
+          thisBoulder.animateBoulderPush(boulderArray);
         }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.row--;
@@ -245,7 +284,7 @@ function move() {//doesn't check for collisions between boulders
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
         if(thisBoulder instanceof Boulder)
         {
-          thisBoulder.animateBoulderPush();
+          thisBoulder.animateBoulderPush(boulderArray);
         }
         ctx.clearRect(char.x, char.y, char.width, char.height);
         char.row++;
@@ -269,7 +308,7 @@ function move() {//doesn't check for collisions between boulders
         let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
         if(thisBoulder instanceof Boulder)
         {
-          thisBoulder.animateBoulderPush();
+          thisBoulder.animateBoulderPush(boulderArray);
         }
         ctx.clearRect(char.x, char.y, char.width, char.height); 
         char.col++;
@@ -348,20 +387,45 @@ function showGrid()
   }
 }
 
+//pauseInput is default false
+function pausable(handler)
+{
+  return function(event)
+        {
+          if (pauseInput) 
+          {
+            return;
+          }
+          return handler(event);
+        }
+}
+
+function freezeInput()
+{
+    //pauses pausable events
+    pauseInput = true;
+}
+
+function unfreezeInput()
+{
+     //unpauses pausable events
+     pauseInput = false;
+}
+
 
 function playGame()
 {
   loadInitial();
   move();
 
-  document.body.addEventListener("keydown", function(e) {
+  document.body.addEventListener("keydown", pausable(function(e) {
     keys[e.keyCode] = true;
     setTimeout(function(){keys[e.keyCode] = false},10)
-  });
-  document.body.addEventListener("keyup", function(e) {
+  }));
+  document.body.addEventListener("keyup", pausable(function(e) {
     keys[e.keyCode] = false;
-  });
-  canvas.addEventListener("mouseover",function(){
+  }));
+  canvas.addEventListener("mouseover", function(){
     grid=true;
     redraw();
   });
