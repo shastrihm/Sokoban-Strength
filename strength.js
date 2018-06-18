@@ -3,11 +3,23 @@ var ctx = canvas.getContext("2d");
 var keys = [];
 var pushUp,pushDown,pushLeft,pushRight;
 var boulderArray = [];
+var iceArray = [];
 var grid=false;
 const size=60;
 var storePos;
 var pauseInput = false;
 
+function freezeInput()
+{
+    //pauses pausable events
+    pauseInput = true;
+}
+
+function unfreezeInput()
+{
+     //unpauses pausable events
+     pauseInput = false;
+}
 
 var faceDown = new Image();
 faceDown.src = "faceDown.png";
@@ -24,6 +36,8 @@ var boulderImg = new Image();
 boulderImg.src = "Boulder.png";
 var flagImg = new Image();
 flagImg.src = "flag.png";
+var iceImg = new Image();
+iceImg.src = "Ice.png";
 
 
 function Character(column,row)
@@ -37,10 +51,15 @@ function Character(column,row)
   this.y = this.height*(this.row-1);
   this.img = faceDown;
   this.speed = size;
+  this.recalc_coords = true;
+  this.sliding = false;
 
   this.updatePos = function(){
-    this.x = this.width*(this.col-1);
-    this.y = this.height*(this.row-1);
+    if(this.recalc_coords)
+    {
+      this.x = this.width*(this.col-1);
+      this.y = this.height*(this.row-1);      
+    }
   }
 
   this.draw = function(){
@@ -48,6 +67,102 @@ function Character(column,row)
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
   }
 
+  this.findEndSlide = function(key)
+  { 
+    freezeInput();
+    //key: w, a, s, d in String
+    let testchar = {col:this.col,row:this.row};
+    let dirFunc;
+    let invFunc;
+
+    let withinBounds = function(col,row){
+      let maxRows = canvas.height/size;
+      let maxCols = canvas.width/size;
+      return(col<=maxCols && row<=maxRows && col>=1 && row>=1)
+    }
+    console.log(key);
+    switch(key)
+    {
+      case "w":
+        dirFunc = function(){testchar.row--};
+        invFunc = function(){testchar.row++};
+        break;
+      case "a":
+        dirFunc = function(){testchar.col--};
+        invFunc = function(){testchar.col++};
+        break;
+      case "s":
+        dirFunc = function(){testchar.row++};
+        invFunc = function(){testchar.row--};
+        break;
+      case "d":
+        dirFunc = function(){testchar.col++};
+        invFunc = function(){testchar.col--};
+        break;
+    }
+
+    while(iceArray.some(tile=>collision(testchar,tile)) &&
+      !boulderArray.some(boulder=>collision(testchar,boulder)) &&
+      withinBounds(testchar.col,testchar.row))
+    {
+      console.log(testchar.col,testchar.row)
+      dirFunc();
+    }
+
+    if(!boulderArray.some(boulder=>collision(testchar,boulder)) &&
+      withinBounds(testchar.col,testchar.row))
+    {
+      console.log([testchar.col,testchar.row]);
+      return [testchar.col,testchar.row]
+    }
+    else
+    {
+      invFunc();
+      console.log([testchar.col,testchar.row]);
+      return [testchar.col,testchar.row]
+    }
+    
+  }
+
+  this.animateSlide = function(to,key)
+  { 
+    //to: a tuple of destination coords.
+    //key: 0,1,2,3 corresponds to w,a,s,d
+
+    let dstep=5; //factor of size
+    let end_xy=[this.width*(to[0]-1),this.height*(to[1]-1)];
+    console.log(end_xy);
+    this.recalc_coords = false;
+    let that = this;
+    let dirmove = [
+                   function(){that.y-=dstep;},
+                   function(){that.x-=dstep;},
+                   function(){that.y+=dstep;},
+                   function(){that.x+=dstep;}
+                  ]
+
+    let animate = setInterval(function()
+      { 
+        if(that.x==end_xy[0] && that.y==end_xy[1])
+        {
+          that.col = to[0];
+          that.row = to[1];
+          that.recalc_coords = true;
+          redraw();
+          console.log(that.x,that.y);
+          unfreezeInput();
+          clearInterval(animate);
+        }
+        else
+        { 
+          dirmove[key]();
+          console.log(key);
+          console.log(that.x,that.y);
+          redraw();
+        }
+      },1000/60);
+  }
+  
 }
 
 function Destination(column,row)
@@ -71,6 +186,33 @@ function Destination(column,row)
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
   }
 }
+
+function Ice(column,row)
+{
+  this.parent = "Ice";
+  this.width = size;
+  this.height = size;
+  this.col = column;
+  this.row = row; 
+  this.x = this.width*(this.col-1);
+  this.y = this.height*(this.row-1);
+  this.img = iceImg;
+  iceArray.push(this); 
+
+  this.updatePos = function(){
+    this.x = this.width*(this.col-1);
+    this.y = this.height*(this.row-1);
+  }
+
+  this.draw = function(){
+    this.updatePos();
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+
+}
+
+
+
 
 function Wall(column,row)
 { 
@@ -212,9 +354,10 @@ const masterObstacles = {"Wall": [
 
 function loadInitial() {
   window.onload = function(){
+    iceArray.forEach(tile=>tile.draw());
+    boulderArray.forEach(boulder=>boulder.draw());
     char.draw();
     endgoal.draw();
-    boulderArray.forEach(boulder=>boulder.draw());
   }
 }
 
@@ -230,6 +373,12 @@ function move() {//doesn't check for collisions between boulders
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
         char.img = faceRight;
+        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
+        {
+          char.sliding = true;
+          char.animateSlide(char.findEndSlide("d"),3);
+          char.sliding = false;
+        }
         redraw();
       }
       else{
@@ -254,6 +403,13 @@ function move() {//doesn't check for collisions between boulders
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
         char.img = faceDown;
+        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
+        {
+          char.sliding = true;
+          let asda = char.findEndSlide("s");
+          char.animateSlide(char.findEndSlide("s"),2);
+          char.sliding = false;
+        }
         redraw();
       }
       else{
@@ -278,6 +434,12 @@ function move() {//doesn't check for collisions between boulders
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
         char.img = faceUp;
+        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
+        {
+          char.sliding = true;
+          char.animateSlide(char.findEndSlide("w"),0);
+          char.sliding = false;
+        }
         redraw();
       }
       else{
@@ -302,6 +464,12 @@ function move() {//doesn't check for collisions between boulders
 
       if(!boulderArray.some(boulder=>collision(char, boulder))){
         char.img = faceLeft;
+        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
+        {
+          char.sliding = true;
+          char.animateSlide(char.findEndSlide("a"),1);
+          char.sliding = false;
+        }
         redraw();
       }
       else{
@@ -324,16 +492,18 @@ function redraw()
 { 
   if(grid){
     showGrid();
+    iceArray.forEach(tile=>tile.draw());
+    boulderArray.forEach(boulder=>boulder.draw());
     char.draw();
     endgoal.draw();
-    boulderArray.forEach(boulder=>boulder.draw());
   }
   
   else{
     ctx.clearRect(0,0,canvas.width,canvas.height);
+    iceArray.forEach(tile=>tile.draw());
+    boulderArray.forEach(boulder=>boulder.draw());
     char.draw();
     endgoal.draw();
-    boulderArray.forEach(boulder=>boulder.draw());
   }
 }
 
@@ -400,17 +570,7 @@ function pausable(handler)
         }
 }
 
-function freezeInput()
-{
-    //pauses pausable events
-    pauseInput = true;
-}
 
-function unfreezeInput()
-{
-     //unpauses pausable events
-     pauseInput = false;
-}
 
 
 function playGame()
