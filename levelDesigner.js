@@ -241,3 +241,5 @@ function getConfig()
 {
   document.getElementById("I/O_config").value = exportConfig(canvas,boulderArray,char,endgoal);
 }
+
+
