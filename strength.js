@@ -2,8 +2,17 @@ var canvas = document.getElementById("canv");
 var ctx = canvas.getContext("2d");
 var keys = [];
 var pushUp,pushDown,pushLeft,pushRight;
+var freeMove = true;
+
 var boulderArray = [];
 var iceArray = [];
+var wormholeArray = [];
+
+function allObstacleArray()
+{
+  return boulderArray.concat(iceArray,wormholeArray);
+}
+
 var grid=false;
 const size=60;
 var storePos;
@@ -38,6 +47,10 @@ var flagImg = new Image();
 flagImg.src = "flag.png";
 var iceImg = new Image();
 iceImg.src = "Ice.png";
+var wormholeImg = new Image();
+wormholeImg.src = "Wormhole.png";
+
+
 
 
 function Character(column,row)
@@ -103,6 +116,7 @@ function Character(column,row)
 
     while(iceArray.some(tile=>collision(testchar,tile)) &&
       !boulderArray.some(boulder=>collision(testchar,boulder)) &&
+      !wormholeArray.some(hole=>collision(testchar,hole)) &&
       withinBounds(testchar.col,testchar.row))
     {
       console.log(testchar.col,testchar.row)
@@ -134,13 +148,25 @@ function Character(column,row)
     console.log(end_xy);
     this.recalc_coords = false;
     let that = this;
-    let dirmove = [
-                   function(){that.y-=dstep;},
-                   function(){that.x-=dstep;},
-                   function(){that.y+=dstep;},
-                   function(){that.x+=dstep;}
-                  ]
+    switch(key)
+    {
+      case "w":
+        dirFunc = function(){that.y-=dstep;};
+        break;
+      case "a":
+        dirFunc = function(){that.x-=dstep;};
+        break;
+      case "s":
+        dirFunc = function(){that.y+=dstep};
+        break;
+      case "d":
+        dirFunc = function(){that.x+=dstep};
+        break;
+    }
 
+    //careful! setInterval still runs code after it evevn during animation
+    //it is asyncronous. Anything u want to do once animation is finished 
+    // and before new redraw() call must be in the clearInterval code block.
     let animate = setInterval(function()
       { 
         if(that.x==end_xy[0] && that.y==end_xy[1])
@@ -155,7 +181,7 @@ function Character(column,row)
         }
         else
         { 
-          dirmove[key]();
+          dirFunc();
           console.log(key);
           console.log(that.x,that.y);
           redraw();
@@ -316,6 +342,48 @@ function Boulder(column, row)
 Boulder.prototype = Object.create(Wall.prototype);
 
 
+function Wormhole(column,row,warpto=null)
+{
+  this.parent = "Wormhole";
+  this.width = size;
+  this.height = size;
+  this.col = column;
+  this.row = row; 
+  this.x = this.width*(this.col-1);
+  this.y = this.height*(this.row-1);
+  this.img = wormholeImg;
+  
+  this.warpto = warpto;
+
+  wormholeArray.push(this);
+
+  this.updatePos = function(){
+    this.x = this.width*(this.col-1);
+    this.y = this.height*(this.row-1);
+  }
+
+  this.draw = function(){
+    this.updatePos();
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+
+  this.warp = function(entity){
+    entity.col = this.warpto.col;
+    entity.row = this.warpto.row;
+    redraw();
+  }
+
+  this.linkTo = function(wormholeObj){
+    this.warpto = wormholeObj;
+  }
+
+  this.pairwiseLink = function(wormholeObj)
+  {
+    this.linkTo(wormholeObj);
+    wormholeObj.linkTo(this);
+  } 
+}
+
 char = new Character();
 endgoal = new Destination();
 
@@ -355,135 +423,110 @@ const masterObstacles = {"Wall": [
 function loadInitial() {
   window.onload = function(){
     iceArray.forEach(tile=>tile.draw());
+    wormholeArray.forEach(hole=>hole.draw());
     boulderArray.forEach(boulder=>boulder.draw());
     char.draw();
     endgoal.draw();
   }
 }
 
-var d=68, s=83, w=87, a=65 
-function move() {//doesn't check for collisions between boulders
-  //d
+Wormhole.check = function()
+{
+  if(wormholeArray.some(hole=>collision(char,hole)) && freeMove==true)
+  { 
+    let thishole = wormholeArray.find(hole=>collision(char,hole));
+    thishole.warp(char); 
+  } 
+}
 
-  if (keys[d]) {
-    if (char.x + char.speed + char.width <= canvas.width) {
-      ctx.clearRect(char.x, char.y, char.width, char.height);
-      storePos = [char.col,char.row];
-      char.col++;
-
-      if(!boulderArray.some(boulder=>collision(char, boulder))){
-        char.img = faceRight;
-        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
-        {
-          char.sliding = true;
-          char.animateSlide(char.findEndSlide("d"),3);
-          char.sliding = false;
-        }
-        redraw();
-      }
-      else{
-        let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
-        if(thisBoulder instanceof Boulder)
-        {
-          thisBoulder.animateBoulderPush(boulderArray);
-        }
-        ctx.clearRect(char.x, char.y, char.width, char.height);
-        char.col--;
-        char.img = faceRight;
-        redraw();
-      }
+Wall.check = function()
+{
+  if(boulderArray.some(boulder=>collision(char, boulder)))
+  { 
+    freeMove = false;
+    let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
+    if(thisBoulder instanceof Boulder)
+    {
+      thisBoulder.animateBoulderPush(boulderArray);
     }
+  }
+}
+
+Ice.check = function(dir)
+{
+  if(iceArray.some(tile=>collision(char,tile)) && !char.sliding && freeMove==true)
+  {
+    char.sliding = true;
+    char.animateSlide(char.findEndSlide(dir),dir);
+    char.sliding = false;
+  }
+}
+
+function moveBehavior(dir,charimg,dirfunc,invfunc)
+{
+  //dir: "w" "a" "s" or "d"
+  //charimg: faceDown, faceUp, faceRight, faceLeft
+  //dirfunc: e.g. function(){char.row++;} 
+  //invfunc: e.g. function(){char.row--;}
+  ctx.clearRect(char.x, char.y, char.width, char.height);
+  storePos = [char.col,char.row];
+  dirfunc();
+
+  char.img = charimg;
+  Wall.check();
+  Wormhole.check()
+  Ice.check(dir);
+
+  redraw();
+
+  if(!freeMove)
+  {
+    ctx.clearRect(char.x, char.y, char.width, char.height);
+    invfunc();
+    redraw();
+    freeMove = true;
+  }
+}
+
+
+const d=68;
+const s=83;
+const w=87;
+const a=65;
+
+function move() {//doesn't check for collisions between boulders
+  
+  //d
+  if (keys[d]) {
+    char.img = faceRight;
+    if (char.x + char.speed + char.width <= canvas.width) {
+      moveBehavior("d",faceRight,function(){char.col++;},function(){char.col--;});
+    }
+    redraw();
   }
   //s
   if (keys[s]) {
+    char.img = faceDown;
     if (char.y + char.speed + char.width <= canvas.height) {
-      ctx.clearRect(char.x, char.y, char.width, char.height);
-      storePos = [char.col,char.row];
-      char.row++;
-
-      if(!boulderArray.some(boulder=>collision(char, boulder))){
-        char.img = faceDown;
-        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
-        {
-          char.sliding = true;
-          let asda = char.findEndSlide("s");
-          char.animateSlide(char.findEndSlide("s"),2);
-          char.sliding = false;
-        }
-        redraw();
-      }
-      else{
-        let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
-        if(thisBoulder instanceof Boulder)
-        {
-          thisBoulder.animateBoulderPush(boulderArray);
-        }
-        ctx.clearRect(char.x, char.y, char.width, char.height);
-        char.row--;
-        char.img = faceDown;
-        redraw();
-      }
+      moveBehavior("s",faceDown,function(){char.row++;},function(){char.row--;});
     }
+    redraw();
   }
   //w
   if (keys[w]) {
+    char.img = faceUp;
     if (char.y - char.speed >= 0) {
-      ctx.clearRect(char.x, char.y, char.width, char.height);
-      storePos = [char.col,char.row];
-      char.row--;
-
-      if(!boulderArray.some(boulder=>collision(char, boulder))){
-        char.img = faceUp;
-        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
-        {
-          char.sliding = true;
-          char.animateSlide(char.findEndSlide("w"),0);
-          char.sliding = false;
-        }
-        redraw();
-      }
-      else{
-        let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
-        if(thisBoulder instanceof Boulder)
-        {
-          thisBoulder.animateBoulderPush(boulderArray);
-        }
-        ctx.clearRect(char.x, char.y, char.width, char.height);
-        char.row++;
-        char.img = faceUp;
-        redraw();
-      } 
+      moveBehavior("w",faceUp,function(){char.row--;},function(){char.row++;}); 
     }
+    redraw();
   }
   //a
   if (keys[a]) {
+    char.img = faceLeft;
     if (char.x - char.speed >= 0) {
-      ctx.clearRect(char.x, char.y, char.width, char.height);
-      storePos = [char.col,char.row];
-      char.col--;
-
-      if(!boulderArray.some(boulder=>collision(char, boulder))){
-        char.img = faceLeft;
-        if(iceArray.some(tile=>collision(char,tile)) && !char.sliding)
-        {
-          char.sliding = true;
-          char.animateSlide(char.findEndSlide("a"),1);
-          char.sliding = false;
-        }
-        redraw();
-      }
-      else{
-        let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
-        if(thisBoulder instanceof Boulder)
-        {
-          thisBoulder.animateBoulderPush(boulderArray);
-        }
-        ctx.clearRect(char.x, char.y, char.width, char.height); 
-        char.col++;
-        char.img = faceLeft;
-        redraw();
-      }
+      moveBehavior("a",faceLeft,function(){char.col--;},function(){char.col++;});
     }
+    redraw();
   }
   setTimeout(move, 10);
 }
@@ -491,8 +534,10 @@ function move() {//doesn't check for collisions between boulders
 function redraw()
 { 
   if(grid){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     showGrid();
     iceArray.forEach(tile=>tile.draw());
+    wormholeArray.forEach(hole=>hole.draw());
     boulderArray.forEach(boulder=>boulder.draw());
     char.draw();
     endgoal.draw();
@@ -501,6 +546,7 @@ function redraw()
   else{
     ctx.clearRect(0,0,canvas.width,canvas.height);
     iceArray.forEach(tile=>tile.draw());
+    wormholeArray.forEach(hole=>hole.draw());
     boulderArray.forEach(boulder=>boulder.draw());
     char.draw();
     endgoal.draw();
