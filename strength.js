@@ -1,3 +1,14 @@
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*---------------------GLOBAL VARIABLES---------------------*/
+/*---------------------AND ALLPURPOSE FUNCTIONS-------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+
+
 var canvas = document.getElementById("canv");
 var ctx = canvas.getContext("2d");
 var keys = [];
@@ -8,15 +19,16 @@ var boulderArray = [];
 var iceArray = [];
 var wormholeArray = [];
 
-function allObstacleArray()
+function allArrays()
 {
-  return boulderArray.concat(iceArray,wormholeArray);
+  return boulderArray.concat(iceArray,wormholeArray,[char,endgoal]);
 }
 
 var grid=false;
 const size=60;
 var storePos;
 var pauseInput = false;
+var inAnimation = false; // to handle asynch issues
 
 function freezeInput()
 {
@@ -51,7 +63,15 @@ var wormholeImg = new Image();
 wormholeImg.src = "Wormhole.png";
 
 
-
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*---------------------OBJECT DEFINITIONS-------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
+/*----------------------------------------------------------*/
 
 function Character(column,row)
 { 
@@ -65,7 +85,6 @@ function Character(column,row)
   this.img = faceDown;
   this.speed = size;
   this.recalc_coords = true;
-  this.sliding = false;
 
   this.updatePos = function(){
     if(this.recalc_coords)
@@ -80,11 +99,59 @@ function Character(column,row)
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
   }
 
-  this.findEndSlide = function(key)
+}
+
+function Destination(column,row)
+{ 
+  this.parent = "Destination";
+  this.width = size;
+  this.height = size;
+  this.col = column;
+  this.row = row; 
+  this.x = this.width*(this.col-1);
+  this.y = this.height*(this.row-1);
+  this.img = flagImg;
+  
+  this.updatePos = function(){
+    this.x = this.width*(this.col-1);
+    this.y = this.height*(this.row-1);
+  }
+
+  this.draw = function(){
+    this.updatePos();
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+}
+
+function Ice(column,row)
+{
+  this.parent = "Ice";
+  this.width = size;
+  this.height = size;
+  this.col = column;
+  this.row = row; 
+  this.x = this.width*(this.col-1);
+  this.y = this.height*(this.row-1);
+  this.img = iceImg;
+  this.active = true;
+  iceArray.push(this); 
+
+  this.updatePos = function(){
+    this.x = this.width*(this.col-1);
+    this.y = this.height*(this.row-1);
+  }
+
+  this.draw = function(){
+    this.updatePos();
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+
+  this.findEndSlide = function(key,char)
   { 
     freezeInput();
     //key: w, a, s, d in String
-    let testchar = {col:this.col,row:this.row};
+    //char: entity
+    let testchar = {col:char.col,row:char.row};
     let dirFunc;
     let invFunc;
 
@@ -138,16 +205,30 @@ function Character(column,row)
     
   }
 
-  this.animateSlide = function(to,key)
+  this.animateSlide = function(to,key,char)
   { 
     //to: a tuple of destination coords.
     //key: 0,1,2,3 corresponds to w,a,s,d
+    //char: entity
+    freezeInput();
+    inAnimation = true;
+
+    if(this.active == false)
+    {
+      if(inAnimation == false)
+      {
+        unfreezeInput();
+      }
+      return;
+    }
+
+    let pathLength = Math.abs(char.col-to[0])+Math.abs(char.row-to[1]);
 
     let dstep=5; //factor of size
-    let end_xy=[this.width*(to[0]-1),this.height*(to[1]-1)];
+    let end_xy=[char.width*(to[0]-1),char.height*(to[1]-1)];
     console.log(end_xy);
-    this.recalc_coords = false;
-    let that = this;
+    char.recalc_coords = false;
+    let that = char;
     switch(key)
     {
       case "w":
@@ -165,7 +246,7 @@ function Character(column,row)
     }
 
     //careful! setInterval still runs code after it evevn during animation
-    //it is asyncronous. Anything u want to do once animation is finished 
+    //it is asynchronous. Anything u want to do once animation is finished 
     // and before new redraw() call must be in the clearInterval code block.
     let animate = setInterval(function()
       { 
@@ -176,8 +257,14 @@ function Character(column,row)
           that.recalc_coords = true;
           redraw();
           console.log(that.x,that.y);
-          unfreezeInput();
           clearInterval(animate);
+          inAnimation = false;
+          //check if char is on something after slide. Act accordingly
+          Wormhole.check(char);
+          if(inAnimation==false)
+          {
+            unfreezeInput();
+          }
         }
         else
         { 
@@ -188,51 +275,17 @@ function Character(column,row)
         }
       },1000/60);
   }
-  
-}
 
-function Destination(column,row)
-{ 
-  this.parent = "Destination";
-  this.width = size;
-  this.height = size;
-  this.col = column;
-  this.row = row; 
-  this.x = this.width*(this.col-1);
-  this.y = this.height*(this.row-1);
-  this.img = flagImg;
-  
-  this.updatePos = function(){
-    this.x = this.width*(this.col-1);
-    this.y = this.height*(this.row-1);
-  }
-
-  this.draw = function(){
-    this.updatePos();
-    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
-  }
-}
-
-function Ice(column,row)
-{
-  this.parent = "Ice";
-  this.width = size;
-  this.height = size;
-  this.col = column;
-  this.row = row; 
-  this.x = this.width*(this.col-1);
-  this.y = this.height*(this.row-1);
-  this.img = iceImg;
-  iceArray.push(this); 
-
-  this.updatePos = function(){
-    this.x = this.width*(this.col-1);
-    this.y = this.height*(this.row-1);
-  }
-
-  this.draw = function(){
-    this.updatePos();
-    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  this.updateStatus = function()
+  {
+    if(wormholeArray.some(hole=>collision(this,hole)))
+    {
+      this.active = false;
+    }
+    else
+    {
+      this.active = true;
+    }
   }
 
 }
@@ -382,7 +435,49 @@ function Wormhole(column,row,warpto=null)
     this.linkTo(wormholeObj);
     wormholeObj.linkTo(this);
   } 
+
+  this.warpAnimation = function(entity,imgs,revolutions, ms)
+  { 
+    //entity: char, boulder, anything that will be warped and animated.
+    //imgs: array of images that entity will cycle through for animation
+    //ms: ms per quarter revolution
+    //revolutions: num times ent spins. warps at half. 
+
+    inAnimation = true;
+    freezeInput();
+    let rev = 0;
+    let that = this;
+    var spinchar = function(entity,img)
+    {
+      entity.img = img;
+      redraw();
+    }
+
+    let animate = setInterval(function()
+    {
+      if(rev>=revolutions)
+        { 
+          clearInterval(animate);
+          inAnimation = false;
+          if(inAnimation == false)
+          {
+            unfreezeInput();
+          }
+        }
+      else
+      { 
+        if(rev>=revolutions/2)
+        {
+          that.warp(entity)
+        }  
+        spinchar(char,imgs[rev%imgs.length]);
+        rev++
+      }
+    },ms)
+  }
+
 }
+
 
 char = new Character();
 endgoal = new Destination();
@@ -414,7 +509,7 @@ const masterObstacles = {"Wall": [
 /*----------------------------------------------------------*/
 /*----------------------------------------------------------*/
 /*----------------------------------------------------------*/
-/*----------------------------------------------------------*/
+/*---------------------MOVEMENT BEHAVIOUR-------------------*/
 /*----------------------------------------------------------*/
 /*----------------------------------------------------------*/
 /*----------------------------------------------------------*/
@@ -430,16 +525,16 @@ function loadInitial() {
   }
 }
 
-Wormhole.check = function()
+Wormhole.check = function(char)
 {
   if(wormholeArray.some(hole=>collision(char,hole)) && freeMove==true)
   { 
     let thishole = wormholeArray.find(hole=>collision(char,hole));
-    thishole.warp(char); 
+    thishole.warpAnimation(char,[faceUp,faceRight,faceDown,faceLeft],10*2,40); 
   } 
 }
 
-Wall.check = function()
+Wall.check = function(char)
 {
   if(boulderArray.some(boulder=>collision(char, boulder)))
   { 
@@ -452,13 +547,12 @@ Wall.check = function()
   }
 }
 
-Ice.check = function(dir)
+Ice.check = function(dir,char)
 {
   if(iceArray.some(tile=>collision(char,tile)) && !char.sliding && freeMove==true)
   {
-    char.sliding = true;
-    char.animateSlide(char.findEndSlide(dir),dir);
-    char.sliding = false;
+    let thisTile = iceArray.find(tile=>collision(char,tile));
+    thisTile.animateSlide(thisTile.findEndSlide(dir,char),dir,char);
   }
 }
 
@@ -473,9 +567,9 @@ function moveBehavior(dir,charimg,dirfunc,invfunc)
   dirfunc();
 
   char.img = charimg;
-  Wall.check();
-  Wormhole.check()
-  Ice.check(dir);
+  Wall.check(char);
+  Wormhole.check(char)
+  Ice.check(dir,char);
 
   redraw();
 
@@ -531,8 +625,16 @@ function move() {//doesn't check for collisions between boulders
   setTimeout(move, 10);
 }
 
+
+function update()
+{
+  iceArray.forEach(tile=>tile.updateStatus());
+}
+
 function redraw()
 { 
+  update();
+
   if(grid){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     showGrid();
