@@ -11,22 +11,6 @@ make AI choose between DFS/BFS depending on puzzle size
 neural netwrok
 */
 
-
-///These are defined in strength.js///
-
-// function freezeGame()
-// {
-//     //pauses pausable events
-//     pauseInput = true;
-// }
-
-// function unfreezeInput()
-// {
-//      //unpauses pausable events
-//      pauseInput = false;
-// }
-
-
 function getInitialState()
 {
     return exportConfig(canvas,boulderArray,char,endgoal);
@@ -226,18 +210,6 @@ function reachableStates(currentState,direction)
 }
 
 
-function uniqueElms(data)
-{
-  return data.filter(function(a)
-  {
-    return data.indexOf(a) == data.lastIndexOf(a)
-  });
-}
-
-function remove(array, element)
-{
-    return array.filter(e=>e!==element);
-}
 
 function getReachableStates(fromConfig)
 {   
@@ -483,5 +455,6 @@ function animateSoln(path,ms)
         } 
     },ms)
 }
+
 
 
