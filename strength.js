@@ -14,15 +14,11 @@ var ctx = canvas.getContext("2d");
 var keys = [];
 var pushUp,pushDown,pushLeft,pushRight;
 var freeMove = true;
+var what;
 
 var boulderArray = [];
 var iceArray = [];
 var wormholeArray = [];
-
-function allArrays()
-{
-  return boulderArray.concat(iceArray,wormholeArray,[char,endgoal]);
-}
 
 var grid=false;
 const size=60;
@@ -30,37 +26,28 @@ var storePos;
 var pauseInput = false;
 var inAnimation = false; // to handle asynch issues
 
-function freezeInput()
-{
-    //pauses pausable events
-    pauseInput = true;
-}
-
-function unfreezeInput()
-{
-     //unpauses pausable events
-     pauseInput = false;
-}
 
 var faceDown = new Image();
-faceDown.src = "faceDown.png";
+faceDown.src = "images/faceDown.png";
 var faceUp= new Image();
-faceUp.src= "faceUp.png";
+faceUp.src= "images/faceUp.png";
 var faceRight= new Image();
-faceRight.src= "faceRight.png";
+faceRight.src= "images/faceRight.png";
 var faceLeft = new Image();
-faceLeft.src="faceLeft.png";
+faceLeft.src="images/faceLeft.png";
 
 var wallImg = new Image();
-wallImg.src = "Wall.png";
+wallImg.src = "images/Wall.png";
 var boulderImg = new Image();
-boulderImg.src = "Boulder.png";
+boulderImg.src = "images/Boulder.png";
 var flagImg = new Image();
-flagImg.src = "flag.png";
+flagImg.src = "images/flag.png";
 var iceImg = new Image();
-iceImg.src = "Ice.png";
-var wormholeImg = new Image();
-wormholeImg.src = "Wormhole.png";
+iceImg.src = "images/Ice.png";
+var wormhole_activeImg = new Image();
+wormhole_activeImg.src = "images/Wormhole_active.png";
+var wormhole_inactiveImg = new Image();
+wormhole_inactiveImg.src = "images/Wormhole_inactive.png"
 
 
 /*----------------------------------------------------------*/
@@ -395,7 +382,7 @@ function Boulder(column, row)
 Boulder.prototype = Object.create(Wall.prototype);
 
 
-function Wormhole(column,row,warpto=null)
+function Wormhole(column,row)
 {
   this.parent = "Wormhole";
   this.width = size;
@@ -404,9 +391,10 @@ function Wormhole(column,row,warpto=null)
   this.row = row; 
   this.x = this.width*(this.col-1);
   this.y = this.height*(this.row-1);
-  this.img = wormholeImg;
+  this.img = wormhole_inactiveImg;
   
-  this.warpto = warpto;
+  this.active = true;
+  this.warpto = this;
 
   wormholeArray.push(this);
 
@@ -421,9 +409,30 @@ function Wormhole(column,row,warpto=null)
   }
 
   this.warp = function(entity){
-    entity.col = this.warpto.col;
-    entity.row = this.warpto.row;
+    if(this.active == true)
+    {
+      entity.col = this.warpto.col;
+      entity.row = this.warpto.row;
+    }
     redraw();
+  }
+
+  this.updateStatus = function(){
+    if(wormholeArray.indexOf(this.warpto) == -1)
+    {
+      this.warpto = this;
+    }
+    if(boulderArray.some(boulder=>collision(this.warpto,boulder))
+      || this.warpto == this)
+    {
+      this.active = false;
+      this.img = wormhole_inactiveImg;
+    }
+    else
+    {
+      this.active = true;
+      this.img = wormhole_activeImg;
+    }
   }
 
   this.linkTo = function(wormholeObj){
@@ -442,6 +451,7 @@ function Wormhole(column,row,warpto=null)
     //imgs: array of images that entity will cycle through for animation
     //ms: ms per quarter revolution
     //revolutions: num times ent spins. warps at half. 
+    if(this.active==false){return};
 
     inAnimation = true;
     freezeInput();
@@ -484,7 +494,8 @@ endgoal = new Destination();
 
 //index 0 of key is for initializing the actual obj, 
 //index 1 is for the AI to simulate the game away from UI
-const masterObstacles = {"Wall": [
+const masterObstacles = {
+                        "Wall": [
                                   function(col,row){new Wall(col,row)},
                                   function(col,row){testBoulderArray.push(testWallMaker(col,row));}
                                  ],
@@ -501,9 +512,39 @@ const masterObstacles = {"Wall": [
                                       function(col,row){char = new Character(col,row)},
                                       function(col,row){testchar.col = col;
                                                  testchar.row = row;}
-                                     ]
+                                     ],
+                        "Ice": [
+                                function(col,row){new Ice(col,row);}
+                                ],
+                        "Wormhole": [
+                                    function(col,row,warptocol,warptorow)
+                                    { 
+                                      let thisOne, thatOne;
+                                      thisOne = wormholeArray.find(hole=>findObsAt(hole,col,row));
+                                      thatOne = wormholeArray.find(hole=>findObsAt(hole,warptocol,warptorow));
+                                      if(thisOne===undefined){thisOne = new Wormhole(col,row)};
+                                      if(thatOne===undefined){thatOne = new Wormhole(warptocol,warptorow)};
+                                      thisOne.linkTo(thatOne);
+                                    }
+                                    ]
                         }
                         
+//order matters! they will be orrder in which they are drawn in.
+var allArrays = [iceArray,
+                wormholeArray,
+                boulderArray,
+                [endgoal],
+                [char]];
+
+function updateAllArrays()
+{
+  allArrays = [iceArray,
+                wormholeArray,
+                boulderArray,
+                [endgoal],
+                [char]];
+  //boulderArray.concat(iceArray,wormholeArray,[char,endgoal]);
+}
 
 /*----------------------------------------------------------*/
 /*----------------------------------------------------------*/
@@ -627,32 +668,23 @@ function move() {//doesn't check for collisions between boulders
 
 
 function update()
-{
+{ 
+  updateAllArrays();
+  wormholeArray.forEach(hole=>hole.updateStatus());
   iceArray.forEach(tile=>tile.updateStatus());
 }
 
 function redraw()
 { 
   update();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  if(grid){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(grid)
+  {  
     showGrid();
-    iceArray.forEach(tile=>tile.draw());
-    wormholeArray.forEach(hole=>hole.draw());
-    boulderArray.forEach(boulder=>boulder.draw());
-    char.draw();
-    endgoal.draw();
   }
-  
-  else{
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    iceArray.forEach(tile=>tile.draw());
-    wormholeArray.forEach(hole=>hole.draw());
-    boulderArray.forEach(boulder=>boulder.draw());
-    char.draw();
-    endgoal.draw();
-  }
+
+  allArrays.forEach(arr=>arr.forEach(entity=>entity.draw())); 
 }
 
 
@@ -673,7 +705,7 @@ function collision(ent1, ent2)
 
 function whichSide(ent1, ent2) //which direction boulder push?
 { 
-  if(!(ent1 instanceof Character)){return}
+  if(!(ent1 instanceof Character) || storePos===undefined){return}
 
   let charCol = storePos[0];
   let charRow = storePos[1];
