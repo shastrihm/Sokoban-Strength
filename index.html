@@ -7,59 +7,89 @@
 </head>
 
 <body>
-	<canvas id="canv" width="360" height="360" style="border: 2px solid #000000"></canvas>
+	<div class="content">
 
-	<script src="strength.js"></script>
+		<canvas id="canv" width="360" height="360" style="border: 2px solid #000000" align="center"></canvas>
 
-	<script src="levelDesigner.js"></script>
+		<script src="allPurposeFuncs.js"></script>
 
-	<script src="solverAI.js"></script>
+		<script src="strength.js"></script>
 
-		<br># of Columns:<br>
-		<input id="columns" type="number"/>
-		<br># of rows:<br>
-		<input id="rows" type="number"/>
-		<br>
-		<input id="submitCanvas" type="submit" onclick="userSetUpCanvas()"/>
-		<br>
+		<script src="levelDesigner.js"></script>
 
-		<br>
-		<button id="submitBoulders" onclick="
-		what=Boulder;
-		drawWhatOnClick(canvas);">Mode:Place Boulders</button><br>
+		<script src="solverAI.js"></script>
 
-		<button id="submitWall" onclick="
-		what=Wall;
-		drawWhatOnClick(canvas);">Mode: Place Walls</button><br>
 
-		<button id="submitChar" onclick="
-		what=Character;
-		drawWhatOnClick(canvas);">Mode:Place Character</button><br>
 
-		<button id="undoBoulder" onclick="undoLastBoulder()">Undo Last Placement</button><br>	
+			<div class="editor">
+				<table>
+					<tr>
+						<td>Columns</td>
+						<td>x</td>
+						<td>Rows</td>
+					</tr>
+					<tr>
+						<td><input id="columns" type="number"></td>
+						<td>x</td>
+						<td><input id="rows" type="number"></td>
+						<td><input id="submitCanvas" type="submit" onclick="userSetUpCanvas()"/></td>
+					</tr>
+				</table>
+			<!-- 	<br># of Columns:<br>
+				
+				<br># of rows:<br>
+				<input id="rows" type="number"/>
+				<br>
+				<input id="submitCanvas" type="submit" onclick="userSetUpCanvas()"/> -->
+				<br>
 
-		<button id="removeBoulder" onclick="
-		what='remove'; 
-		drawWhatOnClick(canvas);">Mode: Erase</button><br>
+				<button id="submitBoulders" class="button boulder" onclick="
+				what=Boulder;
+				drawWhatOnClick(canvas);">Place Boulders</button>
 
-		<button id="setDestination" onclick="
-		what=Destination; 
-		drawWhatOnClick(canvas);">Mode: Place Destination</button><br>
+				<button id="submitWall" class="button wall" onclick="
+				what=Wall;
+				drawWhatOnClick(canvas);">Place Walls</button>
 
-		<br>
-		<textarea id="I/O_config" rows="4" cols="50">
-Click export and then save the puzzle to your clipboard!
-Paste the text and then click import to play the puzzle!
-		</textarea>
-		<br>
-		<button id="export" onclick="getConfig()">Export Configuration</button>
-		<button id="import" onclick="validateConfig()">Import Configuration</button>
-		<br>
-		
-		
-	
-	
-</body>
+				<button id="submitChar" class="button character" onclick="
+				what=Character;
+				drawWhatOnClick(canvas);">Place Character</button>
+
+				<button id="setIce" class="button ice" onclick="
+				what=Ice; 
+				drawWhatOnClick(canvas);">Place Ice</button>
+
+				<button id="setWormhole" class="button wormhole" onclick="
+				what=Wormhole; 
+				drawWhatOnClick(canvas);">Place Wormhole</button>
+
+				<button id="setDestination" class="button destination" onclick="
+				what=Destination; 
+				drawWhatOnClick(canvas);">Place Destination</button>
+
+				<button id="removeBoulder" class="button remove" onclick="
+				what='remove'; 
+				drawWhatOnClick(canvas);">Erase</button>
+
+				<div class="IO">
+					<br>
+					<textarea id="I/O_config" rows="4" cols="50">
+	Click export and then save the puzzle to your clipboard!
+	Paste the text and then click import to play the puzzle!
+					</textarea>
+					<br>
+					<button id="import" class="button import" onclick="validateConfig()">Import Configuration</button>
+					<button id="export" class="button export" onclick="getConfig()">Export Configuration</button>
+
+					<br>
+				</div>
+
+			</div>
+			<br>
+
+				
+		</div>
+	</body>
 
 </html>
 
