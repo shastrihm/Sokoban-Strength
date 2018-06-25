@@ -1,8 +1,4 @@
-function clearInput(id)
-{
-  let input = document.getElementById(id);
-  input.value ="";
-}
+
 
 function userSetUpCanvas()
 {
@@ -342,19 +338,35 @@ function exportConfig(canvas,allArrays)
     let thisArr = allArrays[arr];
     if(thisArr.length>0 && thisArr[0].col !== undefined)
     { 
-      let name = thisArr[0].parent;
-      exportThis[name] = [];
+      
+      let init_array_obj_key = function(thing)
+      { 
+        if(exportThis[thing.parent]===undefined)
+        {
+          exportThis[thing.parent] = [];
+        }
+
+        if(thing.parent=="Wormhole")
+        {
+          exportThis[thing.parent].push([thing.col,thing.row,thing.warpto.col,thing.warpto.row]);
+        }
+        else
+        {
+          exportThis[thing.parent].push([thing.col,thing.row]);
+        }
+      }
     
       if(name=="Wormhole")
       {
-        thisArr.forEach(thing=>exportThis[name].push([thing.col,thing.row,thing.warpto.col,thing.warpto.row]));
+        thisArr.forEach(thing=>init_array_obj_key(thing));
       }
       else
       {
-        thisArr.forEach(thing=>exportThis[name].push([thing.col,thing.row]));
+        thisArr.forEach(thing=>init_array_obj_key(thing));
       }
     }
   }
+
   return JSON.stringify(exportThis);
 }
 
@@ -391,7 +403,7 @@ function importConfig(config)
     }
     
   }
-  redraw();
+  redraw();    
 }
 
 
