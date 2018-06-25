@@ -19,6 +19,7 @@ var what;
 var boulderArray = [];
 var iceArray = [];
 var wormholeArray = [];
+var plateArray = [];
 
 var grid=false;
 const size=60;
@@ -48,6 +49,16 @@ var wormhole_activeImg = new Image();
 wormhole_activeImg.src = "images/Wormhole_active.png";
 var wormhole_inactiveImg = new Image();
 wormhole_inactiveImg.src = "images/Wormhole_inactive.png"
+var neutralPlateImg = new Image();
+neutralPlateImg.src = "images/plate_neutral.png";
+var positivePlateImg = new Image();
+positivePlateImg.src = "images/plate_positive.png";
+var negativePlateImg = new Image();
+negativePlateImg.src = "images/plate_negative.png";
+var positiveBoulderImg = new Image();
+positiveBoulderImg.src = "images/Positive_Boulder.png";
+var negativeBoulderImg = new Image();
+negativeBoulderImg.src = "images/Negative_Boulder.png"
 
 
 /*----------------------------------------------------------*/
@@ -72,6 +83,8 @@ function Character(column,row)
   this.img = faceDown;
   this.speed = size;
   this.recalc_coords = true;
+
+  this.charge = NeutralCharge;
 
   this.updatePos = function(){
     if(this.recalc_coords)
@@ -171,6 +184,7 @@ function Ice(column,row)
     while(iceArray.some(tile=>collision(testchar,tile)) &&
       !boulderArray.some(boulder=>collision(testchar,boulder)) &&
       !wormholeArray.some(hole=>collision(testchar,hole)) &&
+      !plateArray.some(plate=>collision(testchar,plate)) &&
       withinBounds(testchar.col,testchar.row))
     {
       console.log(testchar.col,testchar.row)
@@ -242,8 +256,14 @@ function Ice(column,row)
           that.col = to[0];
           that.row = to[1];
           that.recalc_coords = true;
+
+          if(plateArray.some(plate=>collision(char,plate)))
+          {
+            let thisPlate = plateArray.find(plate=>collision(char,plate));
+            thisPlate.toggle(char);
+          }
+
           redraw();
-          console.log(that.x,that.y);
           clearInterval(animate);
           inAnimation = false;
           //check if char is on something after slide. Act accordingly
@@ -257,7 +277,6 @@ function Ice(column,row)
         { 
           dirFunc();
           console.log(key);
-          console.log(that.x,that.y);
           redraw();
         }
       },1000/60);
@@ -265,7 +284,7 @@ function Ice(column,row)
 
   this.updateStatus = function()
   {
-    if(wormholeArray.some(hole=>collision(this,hole)))
+    if(wormholeArray.some(hole=>collision(this,hole) && hole.active==true))
     {
       this.active = false;
     }
@@ -300,6 +319,11 @@ function Wall(column,row)
   this.draw = function(){
     this.updatePos();
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+
+  this.updateStatus = function()
+  {
+    return
   }
 }
 
@@ -376,11 +400,85 @@ function Boulder(column, row)
     }
     
   }
+}
 
+function ChargedBoulder(column,row,charge)
+{
+  Boulder.call(this,column,row);
+  this.parent = "ChargedBoulder";
+  this.charge = charge;
+  this.img = this.charge.bouldImg
+  let that = this;
+
+  this.activationSquares = function(ion)
+  { 
+    
+    if(this.charge.sign == ion.charge.sign)
+    {
+      //repel, 2 block radius
+      return [this.repelled, rBlockRadiusFrom(this.col,this.row,2)];
+    } 
+    else if(this.charge.sign != ion.charge.sign && ion.charge.sign !=0)
+    {
+      //attract, 2 block radius
+      return [this.attracted, rBlockRadiusFrom(this.col,this.row,2)];
+    }
+    else
+    {
+      return false;
+    }
+    
+  }
+
+
+  this.attracted = function(fromSqr,char)
+  { 
+    console.log(fromSqr,that);
+    let toSqr = attractMovement(fromSqr,that);
+    console.log(toSqr);
+    if(!boulderArray.some(boulder=>collision(toSqr,boulder)) && !collision(char,toSqr))
+    {
+      that.col = toSqr.col;
+      that.row = toSqr.row;
+    }
+    redraw();
+  }
+
+  this.repelled = function(fromSqr,char)
+  {
+    console.log(fromSqr,that);
+    let toSqr = repelMovement(fromSqr,that);
+    console.log(toSqr);
+    if(!boulderArray.some(boulder=>collision(toSqr,boulder)) && withinBounds(toSqr.col,toSqr.row) && 
+      !collision(char,toSqr))
+    {
+      that.col = toSqr.col;
+      that.row = toSqr.row;
+    }
+    redraw();    
+  }
+
+  this.animateElectroPush = function(boulderArray,char)
+  {
+    let triggerSqrs = this.activationSquares(char);
+    if(triggerSqrs == false){return};
+    if(triggerSqrs[1].some(sqr=>collision(char,sqr)))
+    {
+      let thisSqr = triggerSqrs[1].find(sqr=>findObsAt(sqr,char.col,char.row));
+      console.log(triggerSqrs[0]);
+      (triggerSqrs[0])(thisSqr,char);
+    }
+
+  }
+
+  this.updateStatus = function()
+  {
+
+  }
 }
 
 Boulder.prototype = Object.create(Wall.prototype);
-
+ChargedBoulder.prototype = Object.create(Boulder.prototype);
 
 function Wormhole(column,row)
 {
@@ -488,6 +586,65 @@ function Wormhole(column,row)
 
 }
 
+const PositiveCharge = {sign:+1,
+                        plateImg: positivePlateImg,
+                        bouldImg: positiveBoulderImg};
+const NegativeCharge = {sign:-1,
+                        plateImg: negativePlateImg,
+                        bouldImg: negativeBoulderImg};
+const NeutralCharge = {sign:0,
+                        plateImg: neutralPlateImg,
+                        bouldImg: boulderImg};
+
+function ChargedPlate(column,row,charge=NeutralCharge)
+{
+  this.parent = "ChargedPlate";
+  this.width = size;
+  this.height = size;
+  this.col = column;
+  this.row = row; 
+  this.x = this.width*(this.col-1);
+  this.y = this.height*(this.row-1);
+
+  this.onIce = iceArray.some(tile=>collision(this,tile));
+  this.charge = charge;
+  this.img = this.charge.plateImg;
+  plateArray.push(this);
+
+  
+  this.updatePos = function(){
+    this.x = this.width*(this.col-1);
+    this.y = this.height*(this.row-1);
+  }
+
+  this.draw = function(){
+    this.updatePos();
+    ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+  }
+
+  this.updateStatus = function()
+  {
+    this.img = this.charge.plateImg;
+    this.onIce = iceArray.some(tile=>collision(this,tile));
+  }
+
+  this.toggle = function(char)
+  {
+    char.charge = this.charge;
+    if(this.charge == PositiveCharge)
+    {
+      this.charge = NegativeCharge;
+    }
+    else if(this.charge == NegativeCharge)
+    {
+      this.charge = NeutralCharge;
+    }
+    else if(this.charge == NeutralCharge)
+    {
+      this.charge = PositiveCharge;
+    }
+  }
+}
 
 char = new Character();
 endgoal = new Destination();
@@ -531,6 +688,7 @@ const masterObstacles = {
                         
 //order matters! they will be orrder in which they are drawn in.
 var allArrays = [iceArray,
+                plateArray,
                 wormholeArray,
                 boulderArray,
                 [endgoal],
@@ -539,11 +697,11 @@ var allArrays = [iceArray,
 function updateAllArrays()
 {
   allArrays = [iceArray,
+                plateArray,
                 wormholeArray,
                 boulderArray,
                 [endgoal],
                 [char]];
-  //boulderArray.concat(iceArray,wormholeArray,[char,endgoal]);
 }
 
 /*----------------------------------------------------------*/
@@ -575,16 +733,36 @@ Wormhole.check = function(char)
   } 
 }
 
+ChargedBoulder.check = function(char)
+{
+  let chargedBoulderArray = boulderArray.filter(boulder=>boulder instanceof ChargedBoulder);
+  for(let cb in chargedBoulderArray)
+  {
+    let cboulder = chargedBoulderArray[cb];
+    let sqrs = cboulder.activationSquares(char)
+    if(sqrs != false)
+    {
+      cboulder.animateElectroPush(boulderArray,char)
+    }
+  }
+}
+
 Wall.check = function(char)
 {
+  // ChargedBoulder.check(char);
   if(boulderArray.some(boulder=>collision(char, boulder)))
   { 
     freeMove = false;
     let thisBoulder=boulderArray.find(boulder=>collision(char,boulder));
-    if(thisBoulder instanceof Boulder)
+    if(thisBoulder instanceof Boulder || thisBoulder instanceof ChargedBoulder)
     {
-      thisBoulder.animateBoulderPush(boulderArray);
+      thisBoulder.animateBoulderPush(boulderArray,char);
     }
+  }
+
+  else
+  {
+    ChargedBoulder.check(char);
   }
 }
 
@@ -594,6 +772,19 @@ Ice.check = function(dir,char)
   {
     let thisTile = iceArray.find(tile=>collision(char,tile));
     thisTile.animateSlide(thisTile.findEndSlide(dir,char),dir,char);
+  }
+}
+
+ChargedPlate.check = function(char)
+{ 
+  if(plateArray.some(plate=>collision(char,plate)) && freeMove==true)
+  {
+    let thisPlate = plateArray.find(plate=>collision(char,plate));
+    if(thisPlate.onIce==false)
+    {
+      //plate toggle done seperately in Ice.animateslide
+      thisPlate.toggle(char);
+    }
   }
 }
 
@@ -607,9 +798,11 @@ function moveBehavior(dir,charimg,dirfunc,invfunc)
   storePos = [char.col,char.row];
   dirfunc();
 
+  //order matters!
   char.img = charimg;
   Wall.check(char);
-  Wormhole.check(char)
+  Wormhole.check(char);
+  ChargedPlate.check(char);
   Ice.check(dir,char);
 
   redraw();
@@ -672,6 +865,7 @@ function update()
   updateAllArrays();
   wormholeArray.forEach(hole=>hole.updateStatus());
   iceArray.forEach(tile=>tile.updateStatus());
+  plateArray.forEach(plate=>plate.updateStatus());
 }
 
 function redraw()
