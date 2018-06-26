@@ -10,7 +10,7 @@ function col_row_to_xy(col,row)
 
 function xy_to_col_row(x,y)
 {
-  return [((x/size)+1), ((y/size)+1)];
+  return [Math.round(((x/size)+1)), Math.round(((y/size)+1))];
 }
 
 function ColRowObject(col,row)
@@ -150,6 +150,111 @@ function orientedTowards(obj,obj2,dir)
   }
 }
 
+function sqrNotAvailable(to)
+{
+  let sqr = returnColRowObject(to[0],to[1]);
+  if(boulderArray.some(boulder=>collision(sqr,boulder)))
+  {
+    return true;
+  }
+  return false;
+}
+
+function sqrAvailable(to,key)
+{
+  let sqr;
+  switch(key)
+  {
+    case "w":
+      sqr = returnColRowObject(to[0],to[1]-1);
+      break;
+    case "a":
+      sqr = returnColRowObject(to[0]-1,to[1]);
+      break;
+    case "s":
+      sqr = returnColRowObject(to[0],to[1]+1);
+      break;
+    case "d":
+      sqr = returnColRowObject(to[0]+1,to[1]);
+      break;
+  }
+
+  if(iceArray.some(tile=>collision(sqr,tile)) &&
+      !boulderArray.some(boulder=>collision(sqr,boulder)) &&
+      !wormholeArray.some(hole=>collision(sqr,hole)) &&
+      !plateArray.some(plate=>collision(sqr,plate)) &&
+      withinBounds(sqr.col,sqr.row))
+  {
+    return true;
+  }
+  return false;
+}
+
+function nextSqrAvailable(char,key)
+{
+  let sqr;
+  switch(key)
+  {
+    case "w":
+      sqr = returnColRowObject(char.col,char.row-1);
+      break;
+    case "a":
+      sqr = returnColRowObject(char.col-1,char.row);
+      break;
+    case "s":
+      sqr = returnColRowObject(char.col,char.row+1);
+      break;
+    case "d":
+      sqr = returnColRowObject(char.col+1,char.row);
+      break;
+  }
+
+  if(iceArray.some(tile=>collision(sqr,tile)) &&
+      !boulderArray.some(boulder=>collision(sqr,boulder)) &&
+      !wormholeArray.some(hole=>collision(sqr,hole)) &&
+      !plateArray.some(plate=>collision(sqr,plate)) &&
+      withinBounds(sqr.col,sqr.row))
+  {
+    return true;
+  }
+  return false;
+}
+
+function nextSqrAvailableAfterAnimation(char,key)
+{
+  let sqr;
+  switch(key)
+  {
+    case "w":
+      sqr = returnColRowObject(char.col,char.row-1);
+      break;
+    case "a":
+      sqr = returnColRowObject(char.col-1,char.row);
+      break;
+    case "s":
+      sqr = returnColRowObject(char.col,char.row+1);
+      break;
+    case "d":
+      sqr = returnColRowObject(char.col+1,char.row);
+      break;
+  }
+
+  if(!boulderArray.some(boulder=>collision(sqr,boulder)) &&
+    withinBounds(sqr.col,sqr.row))
+  {
+    return true;
+  }
+  return false;
+  
+  if((wormholeArray.some(hole=>collision(sqr,hole)) ||
+      plateArray.some(plate=>collision(sqr,plate))) &&
+      !boulderArray.some(boulder=>collision(sqr,boulder)) &&
+      withinBounds(sqr.col,sqr.row))
+  {
+    return true;
+  }
+  return false;
+}
 
 function withinBounds(col,row)
 {

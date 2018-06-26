@@ -146,69 +146,8 @@ function Ice(column,row)
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
   }
 
-  this.findEndSlide = function(key,char)
-  { 
-    freezeInput();
-    //key: w, a, s, d in String
-    //char: entity
-    let testchar = {col:char.col,row:char.row,charge:char.charge};
-    let dirFunc;
-    let invFunc;
 
-    let withinBounds = function(col,row){
-      let maxRows = canvas.height/size;
-      let maxCols = canvas.width/size;
-      return(col<=maxCols && row<=maxRows && col>=1 && row>=1)
-    }
-    console.log(key);
-    switch(key)
-    {
-      case "w":
-        dirFunc = function(){testchar.row--};
-        invFunc = function(){testchar.row++};
-        break;
-      case "a":
-        dirFunc = function(){testchar.col--};
-        invFunc = function(){testchar.col++};
-        break;
-      case "s":
-        dirFunc = function(){testchar.row++};
-        invFunc = function(){testchar.row--};
-        break;
-      case "d":
-        dirFunc = function(){testchar.col++};
-        invFunc = function(){testchar.col--};
-        break;
-    }
-
-    let cBoulderArray = getIndepSubClass(boulderArray,ChargedBoulder);
-    let notCBoulderArray = removeIndepSubClass(boulderArray,ChargedBoulder);
-    while(iceArray.some(tile=>collision(testchar,tile)) &&
-      !boulderArray.some(boulder=>collision(testchar,boulder)) &&
-      !wormholeArray.some(hole=>collision(testchar,hole)) &&
-      !plateArray.some(plate=>collision(testchar,plate)) &&
-      withinBounds(testchar.col,testchar.row))
-    {
-      console.log(testchar.col,testchar.row)
-      dirFunc();
-    }
-
-    if(!boulderArray.some(boulder=>collision(testchar,boulder)) &&
-      withinBounds(testchar.col,testchar.row))
-    {
-      console.log([testchar.col,testchar.row]);
-      return [testchar.col,testchar.row]
-    }
-    else
-    {
-      invFunc();
-      console.log([testchar.col,testchar.row]);
-      return [testchar.col,testchar.row]
-    }
-    
-  }
-
-  this.animateSlide = function(to,key,char)
+  this.animateSlide = function(key,char)
   { 
     //to: a tuple of destination coords.
     //key: 0,1,2,3 corresponds to w,a,s,d
@@ -225,26 +164,27 @@ function Ice(column,row)
       return;
     }
 
-    let pathLength = Math.abs(char.col-to[0])+Math.abs(char.row-to[1]);
-
     let dstep=5; //factor of size
-    let end_xy=[char.width*(to[0]-1),char.height*(to[1]-1)];
-    console.log(end_xy);
+    let toFunc;
     char.recalc_coords = false;
     let that = char;
     switch(key)
     {
       case "w":
         dirFunc = function(){that.y-=dstep;};
+        toFunc = function(){char.row--};
         break;
       case "a":
         dirFunc = function(){that.x-=dstep;};
+        toFunc = function(){char.col--};
         break;
       case "s":
         dirFunc = function(){that.y+=dstep};
+        toFunc = function(){char.row++};
         break;
       case "d":
         dirFunc = function(){that.x+=dstep};
+        toFunc = function(){char.col++};
         break;
     }
 
@@ -253,39 +193,41 @@ function Ice(column,row)
     // and before new redraw() call must be in the clearInterval code block.
     let animate = setInterval(function()
       { 
-        if(that.x==end_xy[0] && that.y==end_xy[1])
+        if(nextSqrAvailable(char,key))
+        { 
+          dirFunc();
+          //works because char.recalccoords is false
+          let tempC = xy_to_col_row(char.x,char.y);
+          char.col = tempC[0];
+          char.row = tempC[1];
+          ChargedBoulder.check(char);
+
+          redraw();
+        }
+        else
         {
-          that.col = to[0];
-          that.row = to[1];
+          if(nextSqrAvailableAfterAnimation(char,key))
+          {
+            toFunc();
+          }
           that.recalc_coords = true;
 
+          clearInterval(animate);
+          inAnimation = false;
+          //check if char is on something after slide. Act accordingly
           if(plateArray.some(plate=>collision(char,plate)))
           {
             let thisPlate = plateArray.find(plate=>collision(char,plate));
             thisPlate.toggle(char);
           }
-
-          redraw();
-          clearInterval(animate);
-          inAnimation = false;
-          //check if char is on something after slide. Act accordingly
           Wormhole.check(char);
           if(inAnimation==false)
           {
             unfreezeInput();
           }
-        }
-        else
-        { 
-          dirFunc();
-          //works because char.recalccoords is false
-          let tempC = xy_to_col_row(char.x,char.y);
-          
-          char.col = tempC[0];
-          char.row = tempC[1];
-          ChargedBoulder.check(char);
           redraw();
         }
+
       },1000/60);
   }
 
@@ -442,7 +384,7 @@ function ChargedBoulder(column,row,charge)
   }
 
 
-  this.attracted = function(fromSqr,char)
+  this.attracted = function(fromSqr,char,simulate=false)
   { 
     console.log(fromSqr,that);
     let toSqr = attractMovement(fromSqr,that);
@@ -452,10 +394,10 @@ function ChargedBoulder(column,row,charge)
       that.col = toSqr.col;
       that.row = toSqr.row;
     }
-    redraw();
+    if(!simulate){redraw()};
   }
 
-  this.repelled = function(fromSqr,char)
+  this.repelled = function(fromSqr,char,simulate=false)
   {
     console.log(fromSqr,that);
     let toSqr = repelMovement(fromSqr,that);
@@ -466,11 +408,11 @@ function ChargedBoulder(column,row,charge)
       that.col = toSqr.col;
       that.row = toSqr.row;
     }
-    redraw();
+    if(!simulate){redraw()};
 
   }
 
-  this.animateElectroPush = function(boulderArray,char)
+  this.animateElectroPush = function(boulderArray,char,simulate=false)
   {
     let triggerSqrs = this.activationSquares(char);
     if(triggerSqrs == false){return};
@@ -478,7 +420,7 @@ function ChargedBoulder(column,row,charge)
     {
       let thisSqr = triggerSqrs[1].find(sqr=>findObsAt(sqr,char.col,char.row));
       console.log(triggerSqrs[0]);
-      (triggerSqrs[0])(thisSqr,char);
+      (triggerSqrs[0])(thisSqr,char,simulate);
     }
 
   }
@@ -487,6 +429,7 @@ function ChargedBoulder(column,row,charge)
   {
     this.img = this.charge.bouldImg;
   }
+
 }
 
 Boulder.prototype = Object.create(Wall.prototype);
@@ -789,7 +732,7 @@ Ice.check = function(dir,char)
   if(iceArray.some(tile=>collision(char,tile)) && !char.sliding && freeMove==true)
   {
     let thisTile = iceArray.find(tile=>collision(char,tile));
-    thisTile.animateSlide(thisTile.findEndSlide(dir,char),dir,char);
+    thisTile.animateSlide(dir,char);
   }
 }
 
