@@ -350,20 +350,19 @@ function exportConfig(canvas,allArrays)
         {
           exportThis[thing.parent].push([thing.col,thing.row,thing.warpto.col,thing.warpto.row]);
         }
+
+        else if(thing.parent=="ChargedBoulder" || thing.parent=="ChargedPlate")
+        {
+          exportThis[thing.parent].push([thing.col,thing.row,thing.charge.sign])
+        }
         else
         {
           exportThis[thing.parent].push([thing.col,thing.row]);
         }
       }
-    
-      if(name=="Wormhole")
-      {
-        thisArr.forEach(thing=>init_array_obj_key(thing));
-      }
-      else
-      {
-        thisArr.forEach(thing=>init_array_obj_key(thing));
-      }
+      
+      thisArr.forEach(thing=>init_array_obj_key(thing));
+      
     }
   }
 

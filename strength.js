@@ -151,7 +151,7 @@ function Ice(column,row)
     freezeInput();
     //key: w, a, s, d in String
     //char: entity
-    let testchar = {col:char.col,row:char.row};
+    let testchar = {col:char.col,row:char.row,charge:char.charge};
     let dirFunc;
     let invFunc;
 
@@ -181,6 +181,8 @@ function Ice(column,row)
         break;
     }
 
+    let cBoulderArray = getIndepSubClass(boulderArray,ChargedBoulder);
+    let notCBoulderArray = removeIndepSubClass(boulderArray,ChargedBoulder);
     while(iceArray.some(tile=>collision(testchar,tile)) &&
       !boulderArray.some(boulder=>collision(testchar,boulder)) &&
       !wormholeArray.some(hole=>collision(testchar,hole)) &&
@@ -276,7 +278,12 @@ function Ice(column,row)
         else
         { 
           dirFunc();
-          console.log(key);
+          //works because char.recalccoords is false
+          let tempC = xy_to_col_row(char.x,char.y);
+          
+          char.col = tempC[0];
+          char.row = tempC[1];
+          ChargedBoulder.check(char);
           redraw();
         }
       },1000/60);
@@ -412,7 +419,11 @@ function ChargedBoulder(column,row,charge)
 
   this.activationSquares = function(ion)
   { 
-    
+    if(this.charge.sign == 0)
+    {
+      return false;
+    }
+
     if(this.charge.sign == ion.charge.sign)
     {
       //repel, 2 block radius
@@ -455,7 +466,8 @@ function ChargedBoulder(column,row,charge)
       that.col = toSqr.col;
       that.row = toSqr.row;
     }
-    redraw();    
+    redraw();
+
   }
 
   this.animateElectroPush = function(boulderArray,char)
@@ -473,7 +485,7 @@ function ChargedBoulder(column,row,charge)
 
   this.updateStatus = function()
   {
-
+    this.img = this.charge.bouldImg;
   }
 }
 
@@ -683,7 +695,13 @@ const masterObstacles = {
                                       if(thatOne===undefined){thatOne = new Wormhole(warptocol,warptorow)};
                                       thisOne.linkTo(thatOne);
                                     }
-                                    ]
+                                    ],
+                        "ChargedPlate": [
+                                        function(col,row){new ChargedPlate(col,row);}
+                                        ],
+                        "ChargedBoulder": [
+                                          function(col,row,charge){new ChargedBoulder(col,row,charge)}
+                                          ]
                         }
                         
 //order matters! they will be orrder in which they are drawn in.

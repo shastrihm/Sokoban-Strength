@@ -39,6 +39,15 @@ function rBlockRadiusFrom(col,row,r)
   return arr.filter(coords=>withinBounds(coords.col,coords.row));
 }
 
+function getIndepSubClass(objArray,subclass)
+{
+  return objArray.filter(obj=>obj instanceof subclass);
+}
+
+function removeIndepSubClass(objArray,subclass)
+{
+  return objArray.filter(obj=>!(obj instanceof subclass))
+}
 function attractMovement(sqr,boulder)
 { 
   console.log(sqr,boulder);
@@ -94,6 +103,53 @@ function repelMovement(sqr,boulder)
     }
   }
 }
+
+function orientedTowards(obj,obj2,dir)
+{
+  //used to check whether a charged boulder is in the path of a sliding char on ice
+  //dir is a string "w" "a" "s" or "d"
+  //returns boolean
+
+  switch(dir)
+  {
+    case "w":
+    case "a":
+    case "s":
+    case "d":
+  }
+  let col1 = obj1.col;
+  let col2 = obj2.col;
+  let row1 = obj1.row;
+  let row2 = obj2.row;
+
+  if(col1==col2)
+  { 
+    if(row1>row2)
+    {
+      return new ColRowObject(col1,row2-1);
+    }
+
+    else
+    {
+      return new ColRowObject(col1,row2+1);
+    }
+
+  }
+
+  else if(row1==row2)
+  {
+    if(col1>col2)
+    {
+      return new ColRowObject(col2-1,row1);      
+    }
+
+    else
+    {
+      return new ColRowObject(col2+1,row1);
+    }
+  }
+}
+
 
 function withinBounds(col,row)
 {
