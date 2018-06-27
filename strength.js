@@ -98,6 +98,7 @@ function Character(column,row)
   this.draw = function(){
     this.updatePos();
     ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    this.charge.charTint();
   }
 
 }
@@ -545,13 +546,16 @@ function Wormhole(column,row)
 
 const PositiveCharge = {sign:+1,
                         plateImg: positivePlateImg,
-                        bouldImg: positiveBoulderImg};
+                        bouldImg: positiveBoulderImg,
+                        charTint: function(){drawTintedCircleAroundChar("red")}};
 const NegativeCharge = {sign:-1,
                         plateImg: negativePlateImg,
-                        bouldImg: negativeBoulderImg};
+                        bouldImg: negativeBoulderImg,
+                        charTint: function(){drawTintedCircleAroundChar("blue")}};
 const NeutralCharge = {sign:0,
                         plateImg: neutralPlateImg,
-                        bouldImg: boulderImg};
+                        bouldImg: boulderImg,
+                        charTint: function(){}};
 
 function ChargedPlate(column,row,charge=NeutralCharge)
 {
