@@ -15,6 +15,7 @@ var keys = [];
 var pushUp,pushDown,pushLeft,pushRight;
 var freeMove = true;
 var what;
+var subwhat;
 
 var boulderArray = [];
 var iceArray = [];
@@ -209,6 +210,7 @@ function Ice(column,row)
           if(nextSqrAvailableAfterAnimation(char,key))
           {
             toFunc();
+            ChargedBoulder.check(char);
           }
           that.recalc_coords = true;
 
@@ -643,7 +645,23 @@ const masterObstacles = {
                                         function(col,row){new ChargedPlate(col,row);}
                                         ],
                         "ChargedBoulder": [
-                                          function(col,row,charge){new ChargedBoulder(col,row,charge)}
+                                          function(col,row,charge)
+                                          {
+                                            let c;
+                                            switch(charge)
+                                            {
+                                              case 1:
+                                                c=PositiveCharge;
+                                                break;
+                                              case -1:
+                                                c=NegativeCharge;
+                                                break;
+                                              case 0:
+                                                c=NeutralCharge;
+                                                break;
+                                            }
+                                            new ChargedBoulder(col,row,c)
+                                          }
                                           ]
                         }
                         
@@ -702,7 +720,7 @@ ChargedBoulder.check = function(char)
     let cboulder = chargedBoulderArray[cb];
     let sqrs = cboulder.activationSquares(char)
     if(sqrs != false)
-    {
+    { 
       cboulder.animateElectroPush(boulderArray,char)
     }
   }

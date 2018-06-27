@@ -77,6 +77,40 @@ function setWormhole(col,row)
   }  
 }
 
+function setChargedPlate(col,row)
+{
+  let doesExist1 = plateArray.find(plate=>findObsAt(plate,col,row));
+  let doesExist2 = wormholeArray.find(hole=>findObsAt(hole,col,row))
+  if(doesExist1===undefined && doesExist2===undefined)
+  {
+    new ChargedPlate(col,row);
+    redraw();
+  }   
+}
+
+function setChargedBoulder(col,row,charge)
+{
+  let doesExist = boulderArray.find(boulder=>findObsAt(boulder,col,row));
+  let testObj = {
+                  width: size,
+                 height: size,
+                      col: col,
+                      row: row,
+                      x: size*(col-1),
+                      y: size*(row-1)
+                 };
+
+  if(doesExist===undefined && 
+    !collision(char, testObj) && 
+    !collision(endgoal, testObj))
+  {
+    new ChargedBoulder(col,row,charge);
+    redraw();
+  } 
+}
+
+
+
 function clearAt(col,row)
 {
   for(let arr in allArrays)
@@ -123,6 +157,14 @@ function setObjects(col,row)
     setWormhole(col,row);
   }
 
+  else if(what==ChargedPlate)
+  {
+    setChargedPlate(col,row);
+  }
+  else if(what==ChargedBoulder)
+  {
+    setChargedBoulder(col,row,subwhat);
+  }
 }
 
 function anchorLineAtClick(clickCol,clickRow)
@@ -197,6 +239,12 @@ function drawWhatOnClick(e)
         break;
       case Destination:
         drawTransparentImg(flagImg, opacity, col, row);
+        break;
+      case ChargedPlate:
+        drawTransparentImg(neutralPlateImg, opacity, col, row);
+        break;
+      case ChargedBoulder:
+        drawTransparentImg(subwhat.bouldImg, opacity, col, row);
         break;
       case "remove":
         let redRGBa = "rgba(218,31,31,0.3)"
@@ -351,7 +399,7 @@ function exportConfig(canvas,allArrays)
           exportThis[thing.parent].push([thing.col,thing.row,thing.warpto.col,thing.warpto.row]);
         }
 
-        else if(thing.parent=="ChargedBoulder" || thing.parent=="ChargedPlate")
+        else if(thing.parent=="ChargedBoulder")
         {
           exportThis[thing.parent].push([thing.col,thing.row,thing.charge.sign])
         }
@@ -394,9 +442,9 @@ function importConfig(config)
         let coords = vals[i];
         col = coords[0];
         row = coords[1];
-        warptocol = coords[2];
-        warptorow = coords[3];
-        (masterObstacles[name])[0](col,row,warptocol,warptorow);           
+        attr1 = coords[2];
+        attr2 = coords[3];
+        (masterObstacles[name])[0](col,row,attr1,attr2);           
       }
 
     }

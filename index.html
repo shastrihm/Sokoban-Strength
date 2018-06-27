@@ -47,9 +47,23 @@
 				what=Boulder;
 				drawWhatOnClick(canvas);">Place Boulders</button>
 
+				<button id="submitPosBoulders" class="button positiveBoulder" onclick="
+				what=ChargedBoulder;
+				subwhat = PositiveCharge;
+				drawWhatOnClick(canvas);">Place Positive Boulders</button>
+
+				<button id="submitNegBoulders" class="button negativeBoulder" onclick="
+				what=ChargedBoulder;
+				subwhat=NegativeCharge;
+				drawWhatOnClick(canvas);">Place Negative Boulders</button>
+
 				<button id="submitWall" class="button wall" onclick="
 				what=Wall;
 				drawWhatOnClick(canvas);">Place Walls</button>
+
+				<button id="setPlate" class="button plate" onclick="
+				what=ChargedPlate;
+				drawWhatOnClick(canvas);">Place Charging Plate</button>
 
 				<button id="submitChar" class="button character" onclick="
 				what=Character;

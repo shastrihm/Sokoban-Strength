@@ -31,7 +31,7 @@ textarea{
 .editor .button {
     background-color: #d0d6cf;
     width: 200px;
-    height: 50px; 
+    height: 60px;
     border: 1px solid black;
     color: black;
     padding: 0px 80px; /*Vertical padding, Horizontal padding*/
@@ -51,32 +51,47 @@ textarea{
 
 .button.boulder{
     background:url(images/Boulder.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
+}
+
+.button.positiveBoulder{
+    background:url(images/Positive_Boulder.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.negativeBoulder{
+    background:url(images/Negative_Boulder.png) no-repeat;
+    background-size: 60px 60px;
 }
 
 .button.wall{
     background:url(images/Wall.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
+}
+
+.button.plate{
+    background:url(images/plate_neutral.png) no-repeat;
+    background-size: 60px 60px;
 }
 
 .button.character{
     background:url(images/faceDown.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
 }
 
 .button.ice{
     background:url(images/Ice.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
 }
 
 .button.wormhole{
     background:url(images/Wormhole_active.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
 }
 
 .button.destination{
     background:url(images/flag.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
 }
 
 .button.remove{
@@ -86,23 +101,26 @@ textarea{
 
 .button.export{
     background:url(images/exportConfig.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
 }
 
 .button.import{
     background:url(images/importConfig.png) no-repeat;
-    background-size: 50px 50px;
+    background-size: 60px 60px;
 }
 
 
 /* ideas: 
 train neural network to solve it
 
-5x6|,Boulder,2,5,|,Boulder,3,5,|,Boulder,4,5,|,Boulder,1,4,|,Boulder,5,4,|,Boulder,2,3,|,Boulder,3,3,|,Boulder,4,3,|,Boulder,1,2,|,Boulder,2,2,|,Boulder,5,2,|,Boulder,4,2,|,Wall,1,1,|,Wall,5,1,|,Character,3,6,|,Destination,3,1,|
-
-
-20x20|,Boulder,8,8,|,Boulder,10,8,|,Boulder,12,8,|,Boulder,11,9,|,Boulder,9,9,|,Boulder,10,10,|,Boulder,12,10,|,Boulder,11,11,|,Boulder,9,12,|,Wall,7,8,|,Wall,7,9,|,Wall,6,9,|,Wall,5,9,|,Wall,4,9,|,Wall,7,7,|,Wall,7,6,|,Wall,8,6,|,Wall,9,6,|,Wall,11,7,|,Wall,12,7,|,Wall,12,6,|,Wall,11,6,|,Wall,10,5,|,Wall,11,5,|,Wall,13,10,|,Wall,14,10,|,Wall,14,9,|,Wall,13,9,|,Wall,15,10,|,Wall,16,10,|,Wall,16,11,|,Wall,16,12,|,Wall,15,13,|,Wall,16,13,|,Wall,14,13,|,Wall,13,13,|,Wall,12,13,|,Wall,11,13,|,Wall,10,13,|,Wall,10,14,|,Wall,10,15,|,Wall,9,15,|,Wall,8,15,|,Wall,7,15,|,Wall,4,10,|,Wall,4,11,|,Wall,4,12,|,Wall,4,13,|,Wall,4,14,|,Wall,4,15,|,Wall,5,15,|,Wall,6,15,|,Wall,8,12,|,Wall,7,12,|,Wall,6,12,|,Wall,5,12,|,Wall,15,8,|,Wall,15,7,|,Wall,15,6,|,Wall,15,5,|,Wall,15,4,|,Wall,14,4,|,Wall,13,4,|,Wall,12,5,|,Character,5,14,|,Destination,13,7,|
-
+enemies? (static/dynamic)
+directional tiles-- can only cross from a certain direction?
 
 Next Order of Business:;
+
+get charged boulders working on Ice
+implement them and plate into editor
+figure out character indication of charge
+
+Instructions w/ sprites etc. in ReadMe
 */
