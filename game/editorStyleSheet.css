@@ -1,0 +1,150 @@
+
+/*
+-------------
+-------------
+-------------
+Global Styles
+-------------
+-------------
+-------------
+*/
+
+.content{
+    /*max-width: 500px;*/
+    margin: 0 auto;
+}
+
+#canvasWrapper{
+    position:relative;
+}
+
+#gameCanv,#bgCanv{
+    position:absolute;
+    left:200px;
+    border: 2px solid #000000;
+}
+
+#toolbar{
+    
+}
+
+body{
+  background-color: rgb(211,211,211);
+}
+
+input[type=number]{
+    width:50px;
+}
+
+textarea{
+    width:200px;
+}
+
+/*
+-------------
+-------------
+-------------
+Editor Styles
+-------------
+-------------
+-------------*/
+
+
+.editor {
+    margin: 20px 0; /*line breaks*/
+    position: absolute;
+    top:0;
+    left:0;
+}
+
+.button {
+    background-color: #d0d6cf;
+    width: 200px;
+    height: 60px;
+    border: 1px solid black;
+    color: black;
+    padding: 0px 80px; /*Vertical padding, Horizontal padding*/
+    text-align: left;
+    text-decoration: none;
+    display: block;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+.button.boulder{
+    background:url(images/Boulder.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.positiveBoulder{
+    background:url(images/Positive_Boulder.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.negativeBoulder{
+    background:url(images/Negative_Boulder.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.wall{
+    background:url(images/Wall.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.plate{
+    background:url(images/plate_neutral.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.character{
+    background:url(images/faceDown.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.ice{
+    background:url(images/Ice.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.wormhole{
+    background:url(images/Wormhole_active.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.destination{
+    background:url(images/flag.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.remove{
+/*    background:url(Ice.png) no-repeat;
+    background-size: 50px 50px;*/
+}
+
+.button.export{
+    background:url(images/exportConfig.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button.import{
+    background:url(images/importConfig.png) no-repeat;
+    background-size: 60px 60px;
+}
+
+.button:hover {
+    background-color: #ecf2b5;
+}
+
+/* ideas: 
+train neural network to solve it
+
+enemies? (static/dynamic)
+directional tiles-- can only cross from a certain direction?
+
+Next Order of Business:;
+
+
+Instructions w/ sprites etc. in ReadMe
+background canvas animated (dark, wavy)
+*/

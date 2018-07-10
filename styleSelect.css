@@ -1,0 +1,61 @@
+
+@keyframes animatedBackground {
+    from { background-position: 0 0; }
+    to { background-position: 100% 0; }
+}
+body  { 
+    background-image: url(game/images/launchbg.png);
+    background-position: 0px 0px;
+    background-repeat: repeat-x;
+
+    animation: animatedBackground 30s linear infinite;
+}
+
+.toolbar{
+    text-align: center;
+}
+
+
+.container .btn{
+    background-color: #d0d6cf;
+    width: 200px;
+    height: 60px;
+    border: 1px solid black;
+    color: black;
+    padding: 0px 80px; /*Vertical padding, Horizontal padding*/
+    text-align: left;
+    text-decoration: none;
+   /* display: block;*/
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #ecf2b5;
+}
+
+/* Matrix Layout */
+.btn-matrix > .btn:nth-child(3n+4) {
+  clear: left;
+  margin-left: 0;
+}
+.btn-matrix > .btn:nth-child(n+4) {
+  margin-top: -1px;
+}
+.btn-matrix > .btn:first-child {
+  border-bottom-left-radius: 0;
+}
+.btn-matrix > .btn:nth-child(3) {
+  border-top-right-radius: 4px !important;
+}
+.btn-matrix > .btn:nth-last-child(3) {
+  border-bottom-left-radius: 4px !important;
+}
+.btn-matrix > .btn:last-child {
+  border-top-right-radius: 0;
+}
+
+/* Decorations */
+.btn-matrix {
+  margin: 20px;
+}

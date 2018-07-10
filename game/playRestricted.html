@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+        <title>Play</title>
+        <link rel="stylesheet" type="text/css" href="editorStyleSheet.css">
+</head>
+
+<body>
+    <div class="content">
+
+        <div id="canvasWrapper">
+            <canvas id="bgCanv" width="360" height="360" align="center"></canvas>
+            <canvas id="gameCanv" width="360" height="360" align="center"></canvas>
+        </div>
+        
+        <script src="wave.js"></script>
+
+        <script src="allPurposeFuncs.js"></script>
+
+        <script src="strength.js"></script>
+
+        <script src="levelDesigner.js"></script>
+
+        <script src="solverAI.js"></script>
+
+        <script>
+            let level = sessionStorage.getItem("level");
+            importConfig(level);
+            sessionStorage.removeItem("level");
+        </script>
+
+        <div class="editor toolbar">
+            <button class="button reset" onclick="importConfig(level)">Reset</button>
+        </div>
+    </div>
+
+
+
+</body>
+
+</html>
+
