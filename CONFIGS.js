@@ -19,10 +19,3 @@ const CONFIGS = [
 
 ];
 
-// APP DETAILS
-// Client ID: 466090459379531798
-// Client Secret:
-// 9D_U_7YdGI46H2VR3Ocu0xsKR4awo1H7
-// APP BOT USER
-// Username: squirrel-bot#3215
-// Token:NDY2MDkwNDU5Mzc5NTMxNzk4.DiXAZw.yUPqYn3CgeA1lhEPh6ogBAOLCyA
